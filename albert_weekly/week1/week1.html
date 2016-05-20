@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Visualizing Clarity</title>
+
+		<meta name="description" content="From brains to hydrogels to data">
+		<meta name="author" content="Albert Lee">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Visualizing Clarity</h1>
+					<h3>From brains to hydrogels to data</h3>
+					<p>
+						<small>Created by Albert Lee</a> </small>
+					</p>
+				</section>
+
+				<section>
+					<h2>What is Clarity?</h2>
+					<p>
+						Clarity is an imaging technique that uses hydrogels to make brains transparent allowing for damage-free access to key neuronal structures.
+					</p>
+				</section>
+
+
+				<section>
+					<h2>ITKsnap Visualization</h2>
+					<img src="ITKSnap.png" alt="ITKSnap"> <!--//style="width:304px;height:228px;">-->
+				</section>
+
+				<section>
+					<h2>Pros</h2>
+					<p>
+					<ul>
+						<li>Raw data</li>
+						<li>Highest order resolution</li>
+						<li>Annotation capabilities</li>
+					</ul>
+					</p>
+
+					<h2>Cons</h2>
+					<p>
+					<ul>
+						<li>2D representation</li>
+						<li>Annoation is irrelevant</li>
+						<li>Difficult to manipulate</li>
+					</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Solution</h2>
+					<p>
+						3D plotting
+					</p>
+				</section>
+
+				<section>
+					<h2>Matplotlib - high threshold</h2>
+					<img src="matplotlib.png" alt="matplotlib-low_threshold"> <!--//style="width:304px;height:228px;">-->
+				</section>
+
+				<section>
+					<h2>Matplotlib - low threshold</h2>
+					<img src="matplotlib2.png" alt="matplotlib-high_threshold"> <!--//style="width:304px;height:228px;">-->
+				</section>
+
+				<section>
+					<h2>Pros</h2>
+					<p>
+					<ul>
+						<li>Easy</li>
+						<li>High functionality</li>
+					</ul>
+					</p>
+
+					<h2>Cons</h2>
+					<p>
+					<ul>
+						<li>Low customizability</li>
+						<li>Poor performance</li>
+						<li>Outdated stylistically</li>
+					</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Plotly</h2>
+					<img src="plotly.png" alt="Plotly"> <!-- style="width:304px;height:228px;">-->
+				</section>
+
+				<section>
+					<h2>Pros</h2>
+					<p>
+					<ul>
+						<li>Professional and elegant</li>
+						<li>Powerful in scope</li>
+						<li>Simple API</li>
+					</ul>
+					</p>
+
+					<h2>Cons</h2>
+					<p>
+					<ul>
+						<li>Learning curve</li>
+						<li>Expensive/Restricted Access</li>
+						<li>Limited manipulativity</li>
+					</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Javascript</h2>
+					<img src="javascript.png" alt="javascript"> <!--//style="width:304px;height:228px;">-->
+				</section>
+
+				<section>
+					<h2>Pros</h2>
+					<p>
+					<ul>
+						<li>Professional and elegant</li>
+						<li>Extremely powerful</li>
+						<li>Completely manipulatable</li>
+					</ul>
+					</p>
+
+					<h2>Cons</h2>
+					<p>
+					<ul>
+						<li>Steep learning curve</li>
+						<li>Multiple languages</li>
+						<li>Difficult to debug</li>
+					</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Conclusion</h2>
+					<p>
+						3D plotting is a superior method towards visualizing Clarity data. More work needs to be done standardizing the thresholding/sampling, however there is much potential when factoring in opacity metrics. 
+					</p>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
