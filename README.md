@@ -1,1 +1,2 @@
-# ugrad-data-design-team-0
+## My website
+shoutout to namescheap for giving me ericwb.me for free!
