@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Design Team 0 6/5</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background="#000066">
+					<h1>NDMG: F2G pipeline leg overview</h1>
+					<h2>Eric Bridgeford</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Steps to Analysis</h2>
+					<ul>
+						<li>Raw Data</li>
+						<li>Distortion Correction</li>
+						<li>Motion Correction</li>
+						<li>Slice Timing Correction</li>
+						<li>Spatial Smoothing</li>
+						<li>Registration</li>
+						<li>Statistical Analysis</li>
+					</ul>
+				</section>
+				<section data-background="#000066">
+					<h2>Restrictions</h2>
+					<h3>Why Not just go right at it?</h3>
+					<ul>
+						<li>This is a lot to do at once!</li>
+						<li>Can get something working, and add piecewise</li>
+						<li>Allows us to see what improves and what worsens our pipeline</li>
+					</ul>
+				</section>
+				<section data-background="#000066">					
+					<h2>Necessary Pipeline</h2>
+					<ul>
+						<li>Raw Data</li>
+						<li>Motion Correction</li>
+						<li>Registration</li>
+						<li>Timeseries Extraction</li>
+						<li>Graph Generation</li>
+					</ul>
+				</section>
+
+			
+				<section data-background="#000066">
+					<h2>Raw Data</h2>
+					<ul>
+						<li>fMRI functional data</li>
+						<li>MPRAGE anatomical data</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Motion Correction</h2>
+					<ul>
+						<li>Two approaches</li>
+						<li>Eddy Correction</li>
+						<li>mcFLIRT</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Eddy Correction</h2>
+					<pre><code class="hljs">mgr().align(args)</code></pre>
+					<ul>
+						<li>Self alignment for DTI images</li>
+						<li>Advantages: Easy, already written code (courtesy of Greg)</li>
+						<li>Disadvantages: mcFLIRT is super awesome and the gold standard</li>
+					</ul>
+				</section>
+
+
+
+				<section data-background="#000066">
+					<h2>mcFLIRT</h2>
+					<ul>
+						<li>FSL's tool for motion correction</li>
+						<li>What it does: takes into consideration x, y, z positions, as well as x, y, z rotations</li>
+						<li>Advantages: provides TONS of built in QC, actually used for fMRI (used by Harvard, MIT, and CPAC, to my knowledge, CC hasn't returned my emails though :( )</li>
+						<li>Disadvantages: Code not written yet</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Pseudocode for mcFLIRT</h2>
+					<pre><code class="hljs">mcflirt -in input_func_data -out out_func_data_mcf -mats -plots -refvol 0</code></pre>
+					<ul>
+						<li>Example of the built in output plots</li>
+					</ul>
+					<img src="images/week_65/mcflirt.png" height="500">
+				</section>
+
+				<section data-background="#000066">
+					<h2>DICE Quality Control metric for MC</h2>
+					<ul>
+						<li>DICE: similarity of two samples (after motion correction background)</li>
+						<li>obtain DICE comparisons of each slice to the 0th slice, before and after MC</li>
+						<li>show kernel density plots of the DICE values, before and after MC</li>
+						<li>Goal: show that our average DICE value is greater after eddy correction (DICE<sub>before</sub> < DICE <sub>after</sub>)</li>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Pseudocode for DICE Comparison</h2>
+					<pre><code class="hljs">
+for timepoint in fMRI:
+	for slices in fMRI(timepoint):
+		for col in (before, after):
+			comparisons[idx] = DICE(fMRI(timepoint, slice), fMRI(timepoint, 0))
+plot(kde(comparisons))
+assert(mean(comparisons(before)) < mean(comparisons(after))) # the images overlap better after correction
+					</code></pre>
+					<img src="images/week_65/dice.png" height="200" width>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Visual Images Qualitative Quality Control for MC</h2>
+					<ul>
+						<li>produce (numtimepoints) images with (numslices) plots x 2 columns per subject</li>
+						<li>figure shows overlap of each slice with the 0th slice, along with DICE score</li>
+						<li>left column is before MC, right column is after MC</li>
+						<li>pseudocode is same as for registration QC (later)</li>
+						<li>quantitative: mean DICE score per subject before and after registration</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Registration</h2>
+					<ul>
+						<li>Think: if my brain is in one layout and yours is in another, how can we compare?</li>
+						<li>Solution: Image Registration</li>
+						<li>Basics: Align slices of a brain to a template brain, and "warp" the brain to the template space</li>
+						<li>Template Brain: a brian made from averages many peoples' structural scans</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Procedure for Registration</h2>
+					<ul>
+						<li>align first slice of MC'd fMRI image to MPRAGE image</li>
+						<li>align MPRAGE image to the atlas space</li>
+						<li>combine previous two transformation matrices</li>
+						<li>align fMRI stack to template space</li>
+						<li>Why not just go fMRI -> template? far less robust</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Pseudocode for Registration</h2>
+					<pre><code class="hljs">
+mgr().align(fMRI(slice0), mprage, xfm1) # aligns slice 0 to mprage space
+mgr().align(fMRI(slice0), atlas, xfm2) # aligns mprage to atlas space
+convert_xfm -omat xfm3 -concat xfm1 xfm2 # combines alignments
+mgr().apply_xfm(fMRI, template, xfm3, fMRI_templatespace) # aligns fMRI to template and saves as fMRI_templatespace
+					</code></pre>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Quality Control for Registration</h2>
+					<ul>
+						<li>Same as for MC, except instead of the 0th slice, use the template brain</li>
+						<li>plot with left column before, right column after registration</li>
+						<li>quantitative test: show the mean DICE score before and after</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Pseudocode for MC and Registration visual quality control</h2>
+					<pre><code class="hljs">
+for timepoint in fMRI:
+	for slice in fMRI(timepoint):
+		for column in (before, after):
+			plot(fMRI(timepoint)(slice), template)
+			dicelist[timepoint, slice, col] = dice(fMRI(timepoint)(slice), template)
+			title(dicelist[timepoint, slice, idx])
+assert(mean(dicelist[,,col == after] > dicelist[,,col == before])
+					</code></pre>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Downsampling</h2>
+					<ul>
+						<li>We now have our voxel timeseries in standard image spaces</li>
+						<li>Problem: images have many voxels</li>
+						<li>Solution: use a labelled atlas to take mean signals over regions of interest (rois)</li>
+						<li>Procedure is similar, but not identical, to DTI procedure</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Pseudocode for downsampling</h2>
+						<pre><code class="hljs">
+# given a matrix data[x, y, z, time]
+for roi in regions(labelled atlas): # where roi is a collection of x,y,z coordinates of
+					# the space occupied by this roi
+	voxellist = get voxel coordinates occupied by this roi in the labelled atlas
+	down_data[roi,] = mean(data[voxellist,]) # take mean along the voxels and preserve time dimension
+# gives us a (numrois) x (timesteps) output data
+						</code></pre>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Quality Control for Downsampling Quality/Overall Pipeline</h2>
+					<ul>
+						<li>discriminability: metric where high value indicates intra subject relationships between graphs are stronger than inter subject relationships</li>
+						<li>intra subject = same subject, different scan</li>
+						<li>inter subject = different subject, different scan</li>
+						<li>Qualitiative/Quantitative 1: distance matrix with discriminability as title</li>
+						<li>Qualitative/Quantitative 2: intra vs inter subject distances, hellinger distance</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2> Example Discriminability Plot</h2>
+					<img src="images/week_65/discr.png" height="400">
+				</section>
+
+				<!-- TODO: add your content here Eric and Albert -->
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
