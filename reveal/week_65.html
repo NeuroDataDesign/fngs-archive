@@ -148,7 +148,7 @@ assert(mean(comparisons(before)) < mean(comparisons(after))) # the images overla
 						<li>figure shows overlap of each slice with the 0th slice, along with DICE score</li>
 						<li>left column is before MC, right column is after MC</li>
 						<li>pseudocode is same as for registration QC (later)</li>
-						<li>quantitative: mean DICE score per subject before and after registration</li>
+						<li>quantitative: mean DICE score per subject before and after MC</li>
 					</ul>
 				</section>
 
@@ -158,7 +158,7 @@ assert(mean(comparisons(before)) < mean(comparisons(after))) # the images overla
 						<li>Think: if my brain is in one layout and yours is in another, how can we compare?</li>
 						<li>Solution: Image Registration</li>
 						<li>Basics: Align slices of a brain to a template brain, and "warp" the brain to the template space</li>
-						<li>Template Brain: a brian made from averages many peoples' structural scans</li>
+						<li>Template Brain: a brain made from averages many peoples' structural scans</li>
 					</ul>
 				</section>
 
@@ -201,7 +201,7 @@ for timepoint in fMRI:
 			plot(fMRI(timepoint)(slice), template)
 			dicelist[timepoint, slice, col] = dice(fMRI(timepoint)(slice), template)
 			title(dicelist[timepoint, slice, idx])
-assert(mean(dicelist[,,col == after] > dicelist[,,col == before])
+assert(mean(dicelist[,,col == after]) > mean(dicelist[,,col == before]))
 					</code></pre>
 				</section>
 
