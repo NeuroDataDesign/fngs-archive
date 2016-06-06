@@ -177,7 +177,7 @@ assert(mean(comparisons(before)) < mean(comparisons(after))) # the images overla
 					<h2>Pseudocode for Registration</h2>
 					<pre><code class="hljs">
 mgr().align(fMRI(slice0), mprage, xfm1) # aligns slice 0 to mprage space
-mgr().align(fMRI(slice0), atlas, xfm2) # aligns mprage to atlas space
+mgr().align(mprage, template, xfm2) # aligns mprage to atlas space
 convert_xfm -omat xfm3 -concat xfm1 xfm2 # combines alignments
 mgr().apply_xfm(fMRI, template, xfm3, fMRI_templatespace) # aligns fMRI to template and saves as fMRI_templatespace
 					</code></pre>
