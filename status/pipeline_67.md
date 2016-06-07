@@ -8,7 +8,8 @@
     - [Registration QC](./progress_67.md#registration-qc)
   - [Voxel Timeseries Extraction](./progress_67.md#voxel-timeseries-extraction)
   - [Downsampling](./progress_67.md#downsampling)
-    - [Overall Pipeline QC](./progress_67.md#overall-pipeline-qc)
+    - [Downsampling Quality Control](./progress_67.md#downsampling-quality-control)
+  - [Overall Pipeline QC](./progress_67.md#overall-pipeline-qc)
     
 ----------
 
