@@ -32,6 +32,8 @@ deliverable 2: a collection of all of the DICE scores for the previous deliverab
 
 deliverable 3: a plot of the 6 parameters used by mcFLIRT for mc (rotational and translational x, y, and z) as a function of time (6 lines, 1 for each parameter). The bottom plot will show overall translational and rotational displacement as a function of time (2 lines, 1 for translational and 1 for rotational). 
 
+<img src="../reveal/images/week_65/mcflirt.png" width="1000" />
+
 ### Registration
 
 Registration will be completed using the same procedure as the DTI processing pipeline leg of ndmg. We will first align the fMRI 0th scan to the MPRAGE image, and then the MPRAGE image to the template brain (MNI152). We will then combine those two transformations and apply the new robust transformation to the fMRI volume stack, thus giving us the fMRI brain in the template space.
