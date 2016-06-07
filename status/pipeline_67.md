@@ -12,6 +12,7 @@
   - [Overall Pipeline QC](./progress_67.md#overall-pipeline-quality-control)
     
 ----------
+## Pipeline
 
 ### Raw Data
 
