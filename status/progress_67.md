@@ -20,7 +20,7 @@ The raw data to be processed by this leg of the pipeline is fMRI functional scan
 
 ### Motion Correction
 
-Motion Correction will be performed using mcFLIRT, the motion correction module as a part of FSL's Linear Registration Tool. We will default to using the 0th 3d volume for all alignment (assume that the 0th volume corresponds to our true rotational and translational x, y, and z positions). Note that eddy correction is not possible for fMRI images (command line error for invalid data type). TODO: explore using the mean volume instead later.
+Motion Correction will be performed using mcFLIRT, the motion correction module as a part of FSL's Linear Registration Tool. We will default to using the 0th 3d volume for all alignment (assume that the 0th volume corresponds to our true rotational and translational x, y, and z positions). Note that eddy correction is not possible for fMRI images (command line error for invalid data type). TODO: explore using the mean volume instead of the 0th volume later.
 
 ##### Motion Correction Quality Control
 
