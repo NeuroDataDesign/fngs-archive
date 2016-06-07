@@ -3,13 +3,13 @@
 - [Pipeline](./progress_531.md#pipeline)
   - [Raw Data](./progress_67.md#raw-data)
   - [Motion Correction](./progress_67.md#motion-correction)
-    - [Motion Correction QC](./progress_67.md#motion-correction-qc)
+    - [Motion Correction QC](./progress_67.md#motion-correction-quality-control)
   - [Registration](./progress_67.md#registration)
-    - [Registration QC](./progress_67.md#registration-qc)
+    - [Registration QC](./progress_67.md#registration-quality-control)
   - [Voxel Timeseries Extraction](./progress_67.md#voxel-timeseries-extraction)
   - [Downsampling](./progress_67.md#downsampling)
     - [Downsampling Quality Control](./progress_67.md#downsampling-quality-control)
-  - [Overall Pipeline QC](./progress_67.md#overall-pipeline-qc)
+  - [Overall Pipeline QC](./progress_67.md#overall-pipeline-quality-control)
     
 ----------
 
