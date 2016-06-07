@@ -28,11 +28,11 @@ deliverable 1: a plot of each mc'd (motion corrected) 3d volume (1 volume for ea
 
 deliverable 2: a collection of all of the DICE scores for the previous deliverable, in a separate array for each condition (before or after mc). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after mc, and the hellinger distance between the two conditions' kdes will be shown as the title.
 
-<img src="../reveal/images/week_65/dice.png" width="1000" />
+<img src="../reveal/images/week_65/dice.png" width="800" />
 
 deliverable 3: a plot of the 6 parameters used by mcFLIRT for mc (rotational and translational x, y, and z) as a function of time (6 lines, 1 for each parameter). The bottom plot will show overall translational and rotational displacement as a function of time (2 lines, 1 for translational and 1 for rotational). 
 
-<img src="../reveal/images/week_65/mcflirt.png" width="1000" />
+<img src="../reveal/images/week_65/mcflirt.png" width="700" />
 
 ### Registration
 
@@ -64,4 +64,4 @@ deliverable 1: a plot showing the distance matrix between the scans of the datas
 
 deliverable 2: a plot showing the kdes respectively for intra vs inter subject graph distances, collected from the previous distance matrix. Goal is to show that intra subject distances are less than inter subject distances, a characteristic of discriminability. Title will be the hellinger distance between the two conditions.
 
-<img src="../reveal/images/week_65/discr.png" width="1000" />
+<img src="../reveal/images/week_65/discr.png" width="800" />
