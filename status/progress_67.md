@@ -40,7 +40,7 @@ Registration will be completed using the same procedure as the DTI processing pi
 
 ##### Registration Quality Control
 
-deliverable 1: a plot of each registered 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped this time with the same slice of the template brain. The left column will be before registration, the right column after registration. The number of rows will be the number of slices in each 3d volume. The title of each plot will be the DICE score between the two images, binarized (to avoid signal impacting our DICE scores; @jovo is there a better way to do this?).
+deliverable 1: a plot of each registered 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped this time with the same slice of the template brain. The left column will be before registration, the right column after registration. The number of rows will be the number of slices in each 3d volume. The title of each plot will be the DICE score between the two images.
 
 deliverable 2: a collection of all the DICE scores for the previous deliverable, in a separate array for each condition (before and after registration). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after registration, and the hellinger distance between the two conditions' kdes will be shown as the title.
 
