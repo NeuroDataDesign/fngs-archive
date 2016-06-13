@@ -62,6 +62,8 @@ Downsampling will be performed using a labelled atlas. We will average the times
 
 deliverable 1: a correlation matrix for a single fMRI brain.
 
+<img src="../reveal/images/week_612/correlationmtx.png" width="800" />
+
 ### Overall Pipeline Quality Control
 
 The pipeline will be run on an entire dataset, KKI21, and derivatives/individual QC metrics collected prior to performing overall pipeline QC. 
