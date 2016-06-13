@@ -30,7 +30,7 @@ deliverable 1: a plot of each mc'd (motion corrected) 3d volume (1 volume for ea
 
 deliverable 2: a collection of all of the MSE for the previous deliverable, in a separate array for each condition (before or after mc). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after mc, and the hellinger distance between the two conditions' kdes will be shown as the title.
 
-<img src="../reveal/images/week_612/mc_kdes.png" width="800" />
+<img src="../reveal/images/week_612/mc_kdes.png" width="600" />
 
 deliverable 3: a plot of the 6 parameters used by mcFLIRT for mc (rotational and translational x, y, and z) as a function of time (6 lines, 1 for each parameter). The bottom plot will show overall translational and rotational displacement as a function of time (2 lines, 1 for translational and 1 for rotational). 
 
@@ -48,7 +48,7 @@ deliverable 1: a plot of each registered 3d volume (1 volume for each time point
 
 deliverable 2: a collection of all the DICE scores for the previous deliverable, in a separate array for each condition (before and after registration). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better MSE on average for the volumes after registration, and the hellinger distance between the two conditions' kdes will be shown as the title. This figure is the same idea as for the Motion Correction.
 
-<img src="../reveal/images/week_612/reg_kdes.png" width="800" />
+<img src="../reveal/images/week_612/reg_kdes.png" width="600" />
 
 ### Voxel Timeseries Extraction
 
@@ -62,7 +62,7 @@ Downsampling will be performed using a labelled atlas. We will average the times
 
 deliverable 1: a correlation matrix for a single fMRI brain.
 
-<img src="../reveal/images/week_612/correlationmtx.png" width="800" />
+<img src="../reveal/images/week_612/correlation.png" width="600" />
 
 ### Overall Pipeline Quality Control
 
