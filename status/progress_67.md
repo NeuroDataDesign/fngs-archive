@@ -24,11 +24,13 @@ Motion Correction will be performed using mcFLIRT, the motion correction module 
 
 ##### Motion Correction Quality Control
 
-deliverable 1: a plot of each mc'd (motion corrected) 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped with the same slice of the 0th volume. The left column will be before mc; the right after mc. The number of rows will be the same as the number of slices in each 3d volume. The title of each plot will be the DICE score between the two shown images (each image will be opaque). 
+deliverable 1: a plot of each mc'd (motion corrected) 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped with the same slice of the 0th volume. The left column will be before mc; the right after mc. The row shown will be the middle slice, however, a possible extension would be to have the number of rows be the number of slices. The title of each plot will be the MSE between the two shown images (each image will be opaque). 
 
-deliverable 2: a collection of all of the DICE scores for the previous deliverable, in a separate array for each condition (before or after mc). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after mc, and the hellinger distance between the two conditions' kdes will be shown as the title.
+<img src="../reveal/images/week_612/mc_slice33.png" width="800" />
 
-<img src="../reveal/images/week_65/dice.png" width="800" />
+deliverable 2: a collection of all of the MSE for the previous deliverable, in a separate array for each condition (before or after mc). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after mc, and the hellinger distance between the two conditions' kdes will be shown as the title.
+
+<img src="../reveal/images/week_612/mc_kdes.png" width="800" />
 
 deliverable 3: a plot of the 6 parameters used by mcFLIRT for mc (rotational and translational x, y, and z) as a function of time (6 lines, 1 for each parameter). The bottom plot will show overall translational and rotational displacement as a function of time (2 lines, 1 for translational and 1 for rotational). 
 
@@ -42,7 +44,11 @@ Registration will be completed using the same procedure as the DTI processing pi
 
 deliverable 1: a plot of each registered 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped this time with the same slice of the template brain. The left column will be before registration, the right column after registration. The number of rows will be the number of slices in each 3d volume. The title of each plot will be the DICE score between the two images.
 
+<img src="../reveal/images/week_612/reg_slice120.png" width="800" />
+
 deliverable 2: a collection of all the DICE scores for the previous deliverable, in a separate array for each condition (before and after registration). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after registration, and the hellinger distance between the two conditions' kdes will be shown as the title. This figure is the same as for the Motion Correction.
+
+<img src="../reveal/images/week_612/reg_kdes.png" width="800" />
 
 ### Voxel Timeseries Extraction
 
