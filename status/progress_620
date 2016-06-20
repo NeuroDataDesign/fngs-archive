@@ -1,0 +1,149 @@
+## Progress Report - June 6, 2016
+**Table of Contents:**
+- [Pipeline](./progress_620.md#pipeline)
+  - [Raw Data](./progress_620.md#raw-data)
+  - [Motion Correction](./progress_620.md#motion-correction)
+    - [Motion Correction QC](./progress_620.md#motion-correction-quality-control)
+  - [Registration](./progress_620.md#registration)
+    - [Registration QC](./progress_620.md#registration-quality-control)
+  - [Voxel Timeseries Extraction](./progress_620.md#voxel-timeseries-extraction)
+  - [Downsampling](./progress_67.md#downsampling)
+    - [Downsampling Quality Control](./progress_620.md#downsampling-quality-control)
+  - [Overall Pipeline QC](./progress_620.md#overall-pipeline-quality-control)
+    - [QC Pages](./progress_620.md#qc-pages)
+----------
+## Pipeline
+
+### Raw Data
+
+The raw data to be processed by this leg of the pipeline is fMRI functional scans, and registration will require MPRAGE anatomical scans.
+
+### Motion Correction
+
+Motion Correction will be performed using mcFLIRT, the motion correction module as a part of FSL's Linear Registration Tool. We will default to using the 0th 3d volume for all alignment (assume that the 0th volume corresponds to our true rotational and translational x, y, and z positions). Note that eddy correction is not possible for fMRI images (command line error for invalid data type). TODO: explore using the mean volume instead of the 0th volume later.
+
+##### Motion Correction Quality Control
+
+deliverable 1: a plot of each mc'd (motion corrected) 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped with the same slice of the 0th volume. The left column will be before mc; the right after mc. The row shown will be the middle slice, however, a possible extension would be to have the number of rows be the number of slices. The title of each plot will be the MSE between the two shown images (each image will be opaque). 
+
+<img src="../reveal/images/week_612/mc_slice33.png" width="800" />
+
+deliverable 2: a collection of all of the MSE for the previous deliverable, in a separate array for each condition (before or after mc). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better DICE score on average for the volumes after mc, and the hellinger distance between the two conditions' kdes will be shown as the title.
+
+<img src="../reveal/images/week_612/mc_kdes.png" width="600" />
+
+deliverable 3: a plot of the 6 parameters used by mcFLIRT for mc (rotational and translational x, y, and z) as a function of time (6 lines, 1 for each parameter). The bottom plot will show overall translational and rotational displacement as a function of time (2 lines, 1 for translational and 1 for rotational). 
+
+<img src="../reveal/images/week_65/mcflirt.png" width="700" />
+
+### Registration
+
+Registration will be completed using the same procedure as the DTI processing pipeline leg of ndmg. We will first align the fMRI 0th scan to the MPRAGE image, and then the MPRAGE image to the template brain (MNI152). We will then combine those two transformations and apply the new robust transformation to the fMRI volume stack, thus giving us the fMRI brain in the template space.
+
+##### Registration Quality Control
+
+deliverable 1: a plot of each registered 3d volume (1 volume for each time point, total of [numtimepoints] images per subject) overlapped this time with the same slice of the template brain. The left column will be before registration, the right column after registration. The title of each plot will be the MSE between the two images.
+
+<img src="../reveal/images/week_612/reg_slice120.png" width="800" />
+
+deliverable 2: a collection of all the DICE scores for the previous deliverable, in a separate array for each condition (before and after registration). Each condition will then have a kde estimated for the density with respect to the DICE score. Theoretically, we will see a better MSE on average for the volumes after registration, and the hellinger distance between the two conditions' kdes will be shown as the title. This figure is the same idea as for the Motion Correction.
+
+<img src="../reveal/images/week_612/reg_kdes.png" width="600" />
+
+### Voxel Timeseries Extraction
+
+Voxel Timeseries Extraction will be performed using the MNI152 template brain mask. We will extract timeseries for all voxels in the brain mask for all time points, to produce a timeseries for each fMRI brain of dimensions [numvoxels] x [numtimepoints]. 
+
+### Downsampling
+
+Downsampling will be performed using a labelled atlas. We will average the timeseries for all of the voxels within each roi, to produce a timeseries for each fMRI brain of dimensions [numrois] x [numtimepoints] per labelled atlas.
+
+##### Downsampling Quality Control
+
+deliverable 1: a correlation matrix for a single fMRI brain.
+
+<img src="../reveal/images/week_612/correlation.png" width="600" />
+
+### Overall Pipeline Quality Control
+
+The pipeline will be run on an entire dataset, KKI21, and derivatives/individual QC metrics collected prior to performing overall pipeline QC. 
+
+deliverable 1: a plot showing the distance matrix between the scans of the dataset, with title as discriminability. 
+
+deliverable 2: a plot showing the kdes respectively for intra vs inter subject graph distances, collected from the previous distance matrix. Goal is to show that intra subject distances are less than inter subject distances, a characteristic of discriminability. Title will be the hellinger distance between the two conditions.
+
+<img src="../reveal/images/week_65/discr.png" width="800" />
+
+#### QC Pages
+
+For each scan, a full suite quality control pipeline will be available. 
+
+A preliminary summary of the results might look as follows:
+
+##### raw exploration
+
+The availability of users to scroll through the raw data, obtain voxelwise signal intensities, and play the timeseries as a movie. Also, users will be able to download data from here.
+
+<img src="../reveal/images/week_620/raw.png" width="400" />
+
+##### Processed exploration
+
+The availability of processed files (graphs, aligned mri scans, preprocessed only mri scans, etc) in a viewable and downloadable format.
+
+<img src="../reveal/images/week_620/processed.png" width="400" />
+
+<img src="../reveal/images/week_620/graphs.png" width="400" />
+
+##### QC-Signal statistics
+
+The availability of some summarizing signal images, as well as relevant statistics.
+
+<img src="../reveal/images/week_620/qc-smean.png" width="400" />
+
+An image showing the voxel wise mean signal intensity over time.
+
+<img src="../reveal/images/week_620/qc-sstd.png" width="400" />
+
+An image showing the voxel wise standard deviation of signal intensity. 
+
+<img src="../reveal/images/week_620/qc-ssnr.png" width="400" />
+
+An image showing the voxel wise Signal to Noise (SNR) ratio.
+
+<img src="../reveal/images/week_620/qc-sstat.png" width="400" />
+
+An image showing some summarizing statistics for the dataset. 
+
+##### QC- Motion
+
+TODO EB: include minimum. 
+
+The availability of useful summarizing signal images, as well as relevant statistics.
+
+<img src="../reveal/images/week_620/qc-transdisp.png" width="400" />
+
+A file showing the translational displacements, both absolute and relative, over time.
+
+<img src="../reveal/images/week_620/qc-transparam.png" width="400" />
+
+A file summarizing the translational motion parameters over time. 
+
+<img src="../reveal/images/week_620/qc-absstat.png" width="400" />
+
+Statistics for absolute translational motion.
+
+<img src="../reveal/images/week_620/qc-relstat.png" width="400" />
+
+Statistics for relative translational motion.
+
+<img src="../reveal/images/week_620/qc-rotparam.png" width="400" />
+
+A file summarizing the rotational motion parameters over time. 
+
+<img src="../reveal/images/week_620/qc-absrel.png" width="400" />
+
+Statistics for absolute rotational motion.
+
+<img src="../reveal/images/week_620/qc-rotrel.png" width="400" />
+
+Statistics for relative rotational motion.
