@@ -916,21 +916,119 @@
 				</section>
 
 				<section data-background="#000066">
-					<h1>Time Series Analysis Ch. 6-7</h1>
+					<h1>fMRI Data Analysis</h1>
 					<h2>Eric Walker</h2>
 				</section>
 
 				<section data-background="#000066">
-					<h2>R Markdown</h2>
-					<a href="ewok_week_612.html#chapter-6">Chapters 6, 7</a>
+					<h2>Transformation models</h2>
+					<ul>
+						<li>Linear operators <ul>
+							<li>Translation, rotation, scaling, shearing (12 parameters)</li>
+							<li>Rigid body transformation (6 parameters)</li>
+						</ul></li>
+						<li>Nonlinear transformations<ul>
+							<li>Basis functions – polynomial function of original XYZ (many more parameters increasing with the order)</li>
+						</ul></li>
+					</ul>
 				</section>
 
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Within-modality and between-modality</li>
+						<li>Least squares (averaged squared difference between voxel intensities)</li>
+						<li>Normalized correlation (measures linear relationship – default for FSL)</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Mutual information<ul>
+							<li>Joint histogram plots frequency of combinations of intensities (diagonal if equal)</li>
+							<li>MI is the difference between the total entropy of the individual images and the joint entropy</li>
+						</ul></li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Optimization attempts to minimize cost function<ul>
+							<li>Gradient descent – start at particular values then modify</li>
+							<li>Susceptible to local minima (evident when large # of parameters)</li>
+						</ul></li>
+						<li>Regularization – penalty for more complex warps</li>
+						<li>Multiscale optimization – estimate parameters at low resolution then move higher</li>
+					</ul>
+				</section>
 				
+				<section data-background="#000066">
+					<h2>Interpolation</h2>
+					<ul>
+						<li>Nearest neighbor (rarely used)</li>
+						<li>Tri-linear (weighted average)</li>
+						<li>Higher order (sinc, basis functions) - different windows</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Quality control techniques</h2>
+					<ul>
+						<li>Spikes, ghosting, etc.</li>
+						<li>Remove artifactual component to create “denoised” dataset</li>
+						<li>Explicit criteria for rejection to prevent bias</li>
+					</ul>
+				</section>
 
+				<section data-background="#000066">
+					<h2>Distortion correction</h2>
+					<ul>
+						<li>Distortions occur where air and tissue meet</li>
+						<li>Use field map that characterizes B0 field to correct dropout</li>
+					</ul>
+				</section>
 
-
-
-
+				<section data-background="#000066">
+					<h2>Slice timing correction</h2>
+					<ul>
+						<li>Choose reference slice and interpolate rest of data (know timing of acquisition)</li>
+						<li>Move away from this type of correction in practice<ul>
+							<li>Artifacts in one image can be propagated throughout the time series</li>
+							<li>Event-related analysis relatively robust to slice timing problems</li>
+						</ul></li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Motion correction</h2>
+					<ul>
+						<li>Bulk motion vs spin history effect (disruption in signal itself – cannot be correct with standard techniques)</li>
+						<li>Each image aligned to common reference scan (rigid body transformation)</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Motion correction</h2>
+					<ul>
+						<li>Prospective motion correction – modify location during acquisition</li>
+						<li>Should occur before slice timing correction (if latter is used) – effect of motion on voxel intensity</li>
+						<li>Monitor physiological motion (heart rate, breathing) or use cardiac gating</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Spatial smoothing</h2>
+					<ul>
+						<li>Apply low-pass filter to blur image<ul>
+							<li>Increases signal-to-noise ratio</li>
+							<li>Benefits of gain in larger features outweighs loss of smaller features</li>
+							<li>Some analysis methods require specific degree of spatial smoothness</li>
+						</ul></li>
+						<li>In general, FWHM of twice voxel size is good starting point</li>
+					</ul>
+				</section>
 
 
 			</div>
