@@ -157,834 +157,126 @@
 					</ul>
 				</section>
 
-				<!-- TODO: add your content here Eric and Albert -->
-				<section data-background="#000066">
-					<h1>ThreeJS tutorials and demonstrations</h1>
-					<h2>Albert Lee</h2>
-				</section>
-
+				<!-- Divider -->
 
 				<section data-background="#000066">
-					<h2>3D histograms</h2>
-					<ul>
-						<li>Not very useful</li>
-						<li>Interesting to see how the code works</li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>3D histogram code</h2>
-					<pre><code class="hljs"><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script src="./Three.js"></script>
-    <style type="text/css">
-      body {
-        margin: 0px;
-        padding: 0px;
-      }
-
-      #container {
-        position:absolute;
-        left:0px;
-        top:0px;
-        width:100%;
-        height:100%;
-        margin: 0px;
-        padding: 0px;
-      }
-    </style>
-
-    <script src="./raf.js"></script>
-
-  </head>
-
-  <body>
-    <script>
-      function createTextCanvas(text, color, font, size) {
-        size = size || 24;
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        var fontStr = (size + 'px ') + (font || 'Arial');
-        ctx.font = fontStr;
-        var w = ctx.measureText(text).width;
-        var h = Math.ceil(size*1.25);
-        canvas.width = w;
-        canvas.height = h;
-        ctx.font = fontStr;
-        ctx.fillStyle = color || 'black';
-        ctx.fillText(text, 0, size);
-        return canvas;
-      }
-
-      function createText2D(text, color, font, size, segW, segH) {
-        var canvas = createTextCanvas(text, color, font, size);
-        var plane = new THREE.PlaneGeometry(canvas.width, canvas.height, segW, segH);
-        var tex = new THREE.Texture(canvas);
-        tex.needsUpdate = true;
-        var planeMat = new THREE.MeshBasicMaterial({
-          map: tex, color: 0xffffff, transparent: true
-        });
-        var mesh = new THREE.Mesh(plane, planeMat);
-        mesh.doubleSided = true;
-        return mesh;
-      }
-
-      THREE.LeftAlign = 1;
-      THREE.CenterAlign = 0;
-      THREE.RightAlign = -1;
-      THREE.TopAlign = -1;
-      THREE.BottomAlign = 1;
-
-      function alignPlane(plane, horizontalAlign, verticalAlign) {
-        var obj = new THREE.Object3D();
-        var u = plane.geometry.vertices[0].position;
-        var v = plane.geometry.vertices[plane.geometry.vertices.length-1].position;
-        var width = Math.abs(u.x - v.x);
-        var height = Math.abs(u.y - v.y);
-        plane.position.x = (width/2) * horizontalAlign;
-        plane.position.y = (height/2) * verticalAlign;
-        obj.add(plane);
-        return obj;
-      }
-
-      var renderer = new THREE.WebGLRenderer({antialias: true});
-      var w = document.body.clientWidth;
-      var h = document.body.clientHeight;
-      renderer.setSize(w, h);
-      document.body.appendChild(renderer.domElement);
-
-      renderer.setClearColorHex(0xEEEEEE, 1.0);
-      renderer.shadowMapEnabled = true;
-      renderer.shadowMapWidth = 1024;
-      renderer.shadowMapHeight = 1024;
-      renderer.shadowCameraFov = 35;
-
-      var camera = new THREE.PerspectiveCamera( 45, w/h, 1, 10000 );
-      camera.position.z = 200;
-      camera.position.x = -100;
-      camera.position.y = 150;
-
-      var scene = new THREE.Scene();
-
-      var light = new THREE.SpotLight();
-      light.castShadow = true;
-      light.position.set( -170, 300, 100 );
-      scene.add(light);
-
-      var ambientLight = new THREE.PointLight(0x442255);
-      ambientLight.position.set(20, 150, -120);
-      scene.add(ambientLight);
-
-      var plane = new THREE.Mesh(
-        new THREE.CubeGeometry(180, 80, 180), 
-        new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
-      plane.position.y = -40;
-      plane.receiveShadow = true;
-      plane.doubleSided = true;
-      scene.add(plane);
-
-      var grid = [];
-      for (var y=0; y<9; y++) {
-        grid[y] = [];
-        for (var x=0; x<9; x++) {
-          grid[y][x] = 10+Math.random()*(15+x*y);
-        }
-      }
-
-      var barGraph = new THREE.Object3D();
-      scene.add(barGraph);
-
-      var max = grid.reduce(function(s,i){ 
-        return Math.max(s, Math.max.apply(null, i)); 
-      }, grid[0][0]);
-      for (var j=0; j<grid.length; j++) {
-        var array = grid[j];
-        var title = alignPlane(createText2D(j), THREE.CenterAlign, THREE.CenterAlign);
-        title.scale.set(0.25, 0.25, 0.25);
-        title.position.x = (-1-(array.length-1)/2) * 16;
-        title.position.z = -(j-(grid.length-1)/2) * 16;
-        title.position.y = 1;
-        title.rotation.x = -Math.PI/2;
-        barGraph.add(title);
-      }
-      for (var j=0; j<grid[0].length; j++) {
-        var array = grid[0];
-        var c = String.fromCharCode(j+65);
-        var title = alignPlane(createText2D(c), THREE.CenterAlign, THREE.CenterAlign);
-        title.scale.set(0.25, 0.25, 0.25);
-        title.position.x = (j-(array.length-1)/2) * 16;
-        title.position.z = -(-1-(grid.length-1)/2) * 16;
-        title.position.y = 1;
-        title.rotation.x = -Math.PI/2;
-        barGraph.add(title);
-      }
-      for (var j=0; j<grid.length; j++) {
-        var array = grid[j];
-        for (var i=0; i<array.length; i++) {
-          var mat = new THREE.MeshLambertMaterial({color: 0xFFAA55});
-          var barHeight = array[i]/max * 80;
-          mat.color.setHSV(0.2 + 0.8*array[i]/max, 0.8, 1);
-          var geo = new THREE.CubeGeometry(8, barHeight, 8);
-          var mesh = new THREE.Mesh(geo, mat);
-          mesh.position.x = (i-(array.length-1)/2) * 16;
-          mesh.position.y = barHeight/2;
-          mesh.position.z = -(j-(grid.length-1)/2) * 16;
-          mesh.castShadow = mesh.receiveShadow = true;
-          barGraph.add(mesh);
-        }
-      }
-
-      renderer.render(scene, camera);
-      var paused = false;
-      var last = new Date().getTime();
-      var down = false;
-      var sx = 0, sy = 0;
-      var rot = Math.PI/3;
-      camera.position.x = Math.cos(rot)*170;
-      camera.position.z = Math.sin(rot)*170;
-      window.onmousedown = function (ev){
-        down = true; sx = ev.clientX; sy = ev.clientY;
-      };
-      window.onmouseup = function(){ down = false; };
-      window.onmousemove = function(ev) {
-        if (down) {
-          var dx = ev.clientX - sx;
-          var dy = ev.clientY - sy;
-          rot += dx*0.01;
-          camera.position.x = Math.cos(rot)*170;
-          camera.position.z = Math.sin(rot)*170;
-          camera.position.y = Math.max(5, camera.position.y+dy);
-          sx += dx;
-          sy += dy;
-        }
-      }
-      function animate(t) {
-        if (!paused) {
-          last = t;
-          renderer.clear();
-          camera.lookAt(scene.position);
-          renderer.render(scene, camera);
-        }
-        window.requestAnimationFrame(animate, renderer.domElement);
-      };
-      animate(new Date().getTime());
-      onmessage = function(ev) {
-        paused = (ev.data == 'pause');
-      };
-    </script><canvas width="778" height="540"></canvas>
-</body></html></code></pre>
-<a href="ThreejsScatter/bar.html">Result</a>
-				</section>
-
-				<section data-background="#000066">
-					<h2>3D Scatterplot</h2>
-					<ul>
-						<li>Much more useful</li>
-						<li><a href="http://cosmicweb.barabasilab.com/viz/#3">Used as a basis for complex examples like this</a></li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>3D Scatterplot</h2>
-					<pre><code class="hljs"><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script src="./Three.js"></script>
-    <style type="text/css">
-      body {
-        margin: 0px;
-        padding: 0px;
-      }
-    </style>
-
-    <script src="./raf.js"></script>
-
-  </head>
-
-  <body>
-    <script>
-
-      function createTextCanvas(text, color, font, size) {
-        size = size || 24;
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        var fontStr = (size + 'px ') + (font || 'Arial');
-        ctx.font = fontStr;
-        var w = ctx.measureText(text).width;
-        var h = Math.ceil(size);
-        canvas.width = w;
-        canvas.height = h;
-        ctx.font = fontStr;
-        ctx.fillStyle = color || 'black';
-        ctx.fillText(text, 0, Math.ceil(size*0.8));
-        return canvas;
-      }
-
-      function createText2D(text, color, font, size, segW, segH) {
-        var canvas = createTextCanvas(text, color, font, size);
-        var plane = new THREE.PlaneGeometry(canvas.width, canvas.height, segW, segH);
-        var tex = new THREE.Texture(canvas);
-        tex.needsUpdate = true;
-        var planeMat = new THREE.MeshBasicMaterial({
-          map: tex, color: 0xffffff, transparent: true
-        });
-        var mesh = new THREE.Mesh(plane, planeMat);
-        mesh.scale.set(0.25, 0.25, 0.25);
-        mesh.doubleSided = true;
-        return mesh;
-      }
-
-      var renderer = new THREE.WebGLRenderer({antialias: true});
-      var w = document.body.clientWidth;
-      var h = document.body.clientHeight;
-      renderer.setSize(w, h);
-      document.body.appendChild(renderer.domElement);
-
-      renderer.setClearColorHex(0xEEEEEE, 1.0);
-
-      var camera = new THREE.PerspectiveCamera( 45, w/h, 1, 10000 );
-      camera.position.z = 200;
-      camera.position.x = 0;
-      camera.position.y = 75;
-
-      var scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2( 0xFFFFFF, 0.0035 );
-
-      var scatterPlot = new THREE.Object3D();
-      scene.add(scatterPlot);
-
-      scatterPlot.rotation.y = 0.5;
-      function v(x,y,z){ return new THREE.Vertex(new THREE.Vector3(x,y,z)); }
-      
-      var lineGeo = new THREE.Geometry();
-      lineGeo.vertices.push(
-        v(-50, 0, 0), v(50, 0, 0),
-        v(0, -50, 0), v(0, 50, 0),
-        v(0, 0, -50), v(0, 0, 50),
-
-        v(-50, 50, -50), v(50, 50, -50),
-        v(-50, -50, -50), v(50, -50, -50),
-        v(-50, 50, 50), v(50, 50, 50),
-        v(-50, -50, 50), v(50, -50, 50),
-
-        v(-50, 0, 50), v(50, 0, 50),
-        v(-50, 0, -50), v(50, 0, -50),
-        v(-50, 50, 0), v(50, 50, 0),
-        v(-50, -50, 0), v(50, -50, 0),
-
-        v(50, -50, -50), v(50, 50, -50),
-        v(-50, -50, -50), v(-50, 50, -50),
-        v(50, -50, 50), v(50, 50, 50),
-        v(-50, -50, 50), v(-50, 50, 50),
-
-        v(0, -50, 50), v(0, 50, 50),
-        v(0, -50, -50), v(0, 50, -50),
-        v(50, -50, 0), v(50, 50, 0),
-        v(-50, -50, 0), v(-50, 50, 0),
-
-        v(50, 50, -50), v(50, 50, 50),
-        v(50, -50, -50), v(50, -50, 50),
-        v(-50, 50, -50), v(-50, 50, 50),
-        v(-50, -50, -50), v(-50, -50, 50),
-
-        v(-50, 0, -50), v(-50, 0, 50),
-        v(50, 0, -50), v(50, 0, 50),
-        v(0, 50, -50), v(0, 50, 50),
-        v(0, -50, -50), v(0, -50, 50)
-      );
-      var lineMat = new THREE.LineBasicMaterial({color: 0x808080, lineWidth: 1});
-      var line = new THREE.Line(lineGeo, lineMat);
-      line.type = THREE.Lines;
-      scatterPlot.add(line);
-
-      var titleX = createText2D('-X');
-      titleX.position.x = -60;
-      scatterPlot.add(titleX);
-
-      var titleX = createText2D('X');
-      titleX.position.x = 60;
-      scatterPlot.add(titleX);
-
-      var titleX = createText2D('-Y');
-      titleX.position.y = -60;
-      scatterPlot.add(titleX);
-
-      var titleX = createText2D('Y');
-      titleX.position.y = 60;
-      scatterPlot.add(titleX);
-
-      var titleX = createText2D('-Z');
-      titleX.position.z = -60;
-      scatterPlot.add(titleX);
-
-      var titleX = createText2D('Z');
-      titleX.position.z = 60;
-      scatterPlot.add(titleX);
-
-      var mat = new THREE.ParticleBasicMaterial({vertexColors:true, size: 1.5});
-
-      var pointCount = 10000;
-      var pointGeo = new THREE.Geometry();
-      for (var i=0; i<pointCount; i++) {
-        var x = Math.random() * 100 - 50;
-        var y = x*0.8+Math.random() * 20 - 10;
-        var z = x*0.7+Math.random() * 30 - 15;
-        pointGeo.vertices.push(new THREE.Vertex( new THREE.Vector3(x,y,z) ));
-        pointGeo.vertices[i].angle = Math.atan2(z,x);
-        pointGeo.vertices[i].radius = Math.sqrt(x*x+z*z);
-        pointGeo.vertices[i].speed = (z/100)*(x/100);
-        pointGeo.colors.push(new THREE.Color().setHSV(
-          (x+50)/100, (z+50)/100, (y+50)/100));
-      }
-      var points = new THREE.ParticleSystem(pointGeo, mat);
-      scatterPlot.add(points);
-
-      renderer.render(scene, camera);
-      var paused = false;
-      var last = new Date().getTime();
-      var down = false;
-      var sx = 0, sy = 0;
-      window.onmousedown = function (ev){
-        down = true; sx = ev.clientX; sy = ev.clientY;
-      };
-      window.onmouseup = function(){ down = false; };
-      window.onmousemove = function(ev) {
-        if (down) {
-          var dx = ev.clientX - sx;
-          var dy = ev.clientY - sy;
-          scatterPlot.rotation.y += dx*0.01;
-          camera.position.y += dy;
-          sx += dx;
-          sy += dy;
-        }
-      }
-      var animating = false;
-      window.ondblclick = function() { animating = !animating; };
-      function animate(t) {
-        if (!paused) {
-          last = t;
-          if (animating) {
-            var v = pointGeo.vertices;
-            for (var i=0; i<v.length; i++) {
-              var u = v[i];
-              u.angle += u.speed * 0.01;
-              u.position.x = Math.cos(u.angle)*u.radius;
-              u.position.z = Math.sin(u.angle)*u.radius;
-            }
-            pointGeo.__dirtyVertices = true;
-          }
-          renderer.clear();
-          camera.lookAt(scene.position);
-          renderer.render(scene, camera);
-        }
-        window.requestAnimationFrame(animate, renderer.domElement);
-      };
-      animate(new Date().getTime());
-      onmessage = function(ev) {
-        paused = (ev.data == 'pause');
-      };
-    </script><canvas width="778" height="540"></canvas>
-
-</body></html></code></pre>
-<a href="ThreejsScatter/scatter.html">Result</a>
-				
-				</section>
-
-				<section data-background="#000066">
-					<ul>
-						<li><a href="ThreejsScatter/scatter2.html">To put into perspective how important the visual techniques ThreeJS provides, here is an example of what happens when you use ThreeJS without context...</a></li>
-						<li><a href="ThreejsScatter/scatter3.html">However with enough context you can create visuals that do not have the same boxy feeling as most of the scatterplots generated from threeJS</a></li>
-						<li>This previous example has 1,000,000 points demonstrating the power of webgl
-					</ul>
-
-				</section>
-
-				<section data-background="#000066">
-					<h2>HTML Interactions</h2>
-					<ul>
-						<li>Even when using Javascript predominantly for visualization still often need HTML interaction</li>
-						<li>CSV interaction</li>
-						<li>Javascript predominantly for functionality not structure</li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>Clarity Representation</h2>
-					<h6>Please download and insert the csv file located <a href="https://github.com/Upward-Spiral-Science/ugrad-data-design-team-0/blob/gh-pages/reveal/ThreejsScatter/claritybrain.csv">here </a> </h6>
-					<pre><code class="hljs"><html><head>//Source: http://bl.ocks.org/phil-pedruco/9913243
-    <script src="three.min.js"></script>
-    <script src="d3.v3.min.js" charset="utf-8"></script>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <style type="text/css">
-    body {
-        margin: 0px;
-        padding: 0px;
-    }
-    #container {
-        width:960px;
-        height:500px;
-    }
-    </style>
-
-</head>
-<div id="wrapper">
-    <p>
-        <input id="uploader" name="uploader" type="file" />
-    </p>
-    <div id="container"></div>
-</div>
-
-<body>
-
-    <script>
-
-    function createTextCanvas(text, color, font, size) {
-        size = size || 16;
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        var fontStr = (size + 'px ') + (font || 'Arial');
-        ctx.font = fontStr;
-        var w = ctx.measureText(text).width;
-        var h = Math.ceil(size);
-        canvas.width = w;
-        canvas.height = h;
-        ctx.font = fontStr;
-        ctx.fillStyle = color || 'black';
-        ctx.fillText(text, 0, Math.ceil(size * 0.8));
-        return canvas;
-    }
-
-    function createText2D(text, color, font, size, segW, segH) {
-        var canvas = createTextCanvas(text, color, font, size);
-        var plane = new THREE.PlaneGeometry(canvas.width, canvas.height, segW, segH);
-        var tex = new THREE.Texture(canvas);
-        tex.needsUpdate = true;
-        var planeMat = new THREE.MeshBasicMaterial({
-            map: tex,
-            color: 0xffffff,
-            transparent: true
-        });
-        var mesh = new THREE.Mesh(plane, planeMat);
-        mesh.scale.set(0.5, 0.5, 0.5);
-        mesh.doubleSided = true;
-        return mesh;
-    }
-
-    function hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
-
-    function sq(x) {
-        var s = Math.pow(x, 2);
-        return s;
-    }
-
-    function getPts(x) {
-        //console.log(x)
-        var unfiltered = [],
-            lowPass = [],
-            highPass = [];
-
-        x.forEach(function(d, i) {
-
-            var line = d.split(",");
-
-            unfiltered[i] = {
-                x: +line[0],
-                y: +line[1],
-                z: +line[2]
-            };
-            lowPass[i] = {
-                x: +line[4],
-                y: +line[5],
-                z: +line[6]
-            };
-            highPass[i] = {
-                x: +line[7],
-                y: +line[8],
-                z: +line[9]
-            };
-        })
-        var xyzData = {
-            unfiltered: unfiltered,
-            lowPass: lowPass,
-            highPass: highPass
-        }
-        return xyzData;
-    }
-
-    var uploader = document.getElementById("uploader");
-    var reader = new FileReader();
-    var data;
-
-    reader.onload = function(e) {
-        var contents = e.target.result;
-        var rawData = contents.split(/\n/);
-        var tempData = rawData.slice(2, rawData.length);
-        data = getPts(tempData);
-        scatter(data);
-
-        // remove button after loading file
-        uploader.parentNode.removeChild(uploader);
-    };
-
-    uploader.addEventListener("change", handleFiles, false);
-
-    function handleFiles() {
-        var file = this.files[0];
-        reader.readAsText(file);
-    };
-
-    var renderer = new THREE.WebGLRenderer({
-        antialias: true
-    });
-    var w = 960;
-    var h = 500;
-
-    renderer.setSize(w, h);
-    document.getElementById("container").appendChild(renderer.domElement);
-
-    renderer.setClearColorHex(0xEEEEEE, 1.0);
-
-    var camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
-    camera.position.z = 200;
-    camera.position.x = -100;
-    camera.position.y = 100;
-
-    var scene = new THREE.Scene();
-
-    var scatterPlot = new THREE.Object3D();
-    scene.add(scatterPlot);
-
-    scatterPlot.rotation.y = 0;
-
-    function v(x, y, z) {
-        return new THREE.Vector3(x, y, z);
-    }
-
-    var format = d3.format("+.3f");
-
-    function scatter(data) {
-
-        var temp = data.unfiltered;
-        var xExent = d3.extent(temp, function(d) {
-                return d.x;
-            }),
-            yExent = d3.extent(data.unfiltered, function(d) {
-                return d.y;
-            }),
-            zExent = d3.extent(data.unfiltered, function(d) {
-                return d.z;
-            });
-
-        var vpts = {
-            xMax: xExent[1],
-            xCen: (xExent[1] + xExent[0]) / 2,
-            xMin: xExent[0],
-            yMax: yExent[1],
-            yCen: (yExent[1] + yExent[0]) / 2,
-            yMin: yExent[0],
-            zMax: zExent[1],
-            zCen: (zExent[1] + zExent[0]) / 2,
-            zMin: zExent[0]
-        }
-
-        var colour = d3.scale.category20c();
-
-        var xScale = d3.scale.linear()
-            .domain(xExent)
-            .range([-50, 50]);
-        var yScale = d3.scale.linear()
-            .domain(yExent)
-            .range([-50, 50]);
-        var zScale = d3.scale.linear()
-            .domain(zExent)
-            .range([-50, 50]);
-
-        var lineGeo = new THREE.Geometry();
-        lineGeo.vertices.push(
-            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zCen)),
-            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zCen)),
-            v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMin)),
-
-            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)),
-            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
-
-            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
-            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)),
-            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)),
-
-            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)),
-            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
-
-            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMax)),
-            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
-            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)),
-
-            v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
-            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
-            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
-            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)),
-
-            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)),
-            v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
-            v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
-            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax))
-
-        );
-        var lineMat = new THREE.LineBasicMaterial({
-            color: 0x000000,
-            lineWidth: 1
-        });
-        var line = new THREE.Line(lineGeo, lineMat);
-        line.type = THREE.Lines;
-        scatterPlot.add(line);
-
-        var titleX = createText2D('-X');
-        titleX.position.x = xScale(vpts.xMin) - 12,
-        titleX.position.y = 5;
-        scatterPlot.add(titleX);
-
-        var valueX = createText2D(format(xExent[0]));
-        valueX.position.x = xScale(vpts.xMin) - 12,
-        valueX.position.y = -5;
-        scatterPlot.add(valueX);
-
-        var titleX = createText2D('X');
-        titleX.position.x = xScale(vpts.xMax) + 12;
-        titleX.position.y = 5;
-        scatterPlot.add(titleX);
-
-        var valueX = createText2D(format(xExent[1]));
-        valueX.position.x = xScale(vpts.xMax) + 12,
-        valueX.position.y = -5;
-        scatterPlot.add(valueX);
-
-        var titleY = createText2D('-Y');
-        titleY.position.y = yScale(vpts.yMin) - 5;
-        scatterPlot.add(titleY);
-
-        var valueY = createText2D(format(yExent[0]));
-        valueY.position.y = yScale(vpts.yMin) - 15,
-        scatterPlot.add(valueY);
-
-        var titleY = createText2D('Y');
-        titleY.position.y = yScale(vpts.yMax) + 15;
-        scatterPlot.add(titleY);
-
-        var valueY = createText2D(format(yExent[1]));
-        valueY.position.y = yScale(vpts.yMax) + 5,
-        scatterPlot.add(valueY);
-
-        var titleZ = createText2D('-Z ' + format(zExent[0]));
-        titleZ.position.z = zScale(vpts.zMin) + 2;
-        scatterPlot.add(titleZ);
-
-        var titleZ = createText2D('Z ' + format(zExent[1]));
-        titleZ.position.z = zScale(vpts.zMax) + 2;
-        scatterPlot.add(titleZ);
-
-        var mat = new THREE.ParticleBasicMaterial({
-            vertexColors: true,
-            size: 3
-        });
-
-        var pointCount = data.unfiltered.length;
-        var pointGeo = new THREE.Geometry();
-        for (var i = 0; i < pointCount; i++) {
-            var x = xScale(data.unfiltered[i].x);
-            var y = yScale(data.unfiltered[i].y);
-            var z = zScale(data.unfiltered[i].z);
-
-            pointGeo.vertices.push(new THREE.Vector3(x, y, z));
-
-        }
-        var points = new THREE.ParticleSystem(pointGeo, mat);
-        scatterPlot.add(points);
-
-        renderer.render(scene, camera);
-        var paused = false;
-        var last = new Date().getTime();
-        var down = false;
-        var sx = 0,
-            sy = 0;
-
-        window.onmousedown = function(ev) {
-            down = true;
-            sx = ev.clientX;
-            sy = ev.clientY;
-        };
-        window.onmouseup = function() {
-            down = false;
-        };
-        window.onmousemove = function(ev) {
-            if (down) {
-                var dx = ev.clientX - sx;
-                var dy = ev.clientY - sy;
-                var dist = Math.sqrt(sq(camera.position.x) + sq(camera.position.y) + sq(camera.position.z));
-
-                scatterPlot.rotation.y += dx * 0.01;
-                scatterPlot.rotation.x += dy * 0.01;
-
-                sx += dx;
-                sy += dy;
-            }
-        }
-        var animating = false;
-        window.ondblclick = function() {
-            animating = !animating;
-        };
-
-        function animate(t) {
-        if (!paused) {
-          last = t;
-          if (animating) {
-            var v = pointGeo.vertices;
-            for (var i=0; i<v.length; i++) {
-              var u = v[i];
-              u.angle += u.speed * 0.01;
-              u.position.x = Math.cos(u.angle)*u.radius;
-              u.position.z = Math.sin(u.angle)*u.radius;
-            }
-            pointGeo.__dirtyVertices = true;
-          }
-          renderer.clear();
-          camera.lookAt(scene.position);
-          renderer.render(scene, camera);
-        }
-        window.requestAnimationFrame(animate, renderer.domElement);
-      };
-        animate(new Date().getTime());
-        onmessage = function(ev) {
-            paused = (ev.data == 'pause');
-        };
-
-    }
-
-    </script>
-</body>
-
-</html>
-
-}</code></pre>
-<a href="ThreejsScatter/clarityscatter.html">3D Scatterplot</a>
-				
-				</section>
-
-
-				<section data-background="#000066">
-					<h3>Conversely for this example, eliminating standard ThreeJS structure can result in interesting graphics</h3>
-					<h6>Please download and insert the csv file located <a href="https://github.com/Upward-Spiral-Science/ugrad-data-design-team-0/blob/gh-pages/reveal/ThreejsScatter/claritybrain.csv">here </a> </h6>
-					<a href="ThreejsScatter/clarityscatter2.html">Result</a>
-				</section>
+          <h1>Javascript based visualization</h1>
+          <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+          <h1>Introduction to ClarityExplorer</h1>
+        </section>
+
+        <section data-background="#000066">
+          <h2>What is ClarityExplorer</h2>
+          <ul>
+            <li>Primarily python based visualization tool <a href="https://github.com/Upward-Spiral-Science/claritycontrol">tool</a></li>
+            <li><a href = "https://raw.githubusercontent.com/Upward-Spiral-Science/claritycontrol/master/figs/final_report/clarity3d1.png">3D viewer with color correspondance to intensity (trying to change to opacity based)</a></li>
+            <li><a href = "https://raw.githubusercontent.com/Upward-Spiral-Science/claritycontrol/master/figs/final_report/clarity3d2.png">Uses OpenGL for visualization</a></li>
+            <li> Currently can only be run directly in the terminal</li>
+            <li> Has implementation with Plotly and Matplotlib </li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>What should ClarityExplorer look like?</h2>
+          <ul>
+            <li>WebGL based Javascript application</li>
+            <li>Scalable up to a million points</li>
+            <li>Fast, professional, open source</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2><a href="JavascriptJovo/grayborder.html">Current prototype</a></h2>
+          <ul>
+            <li>WebGL based Javascript application</li>
+            <li>Scalable up to million points but very slow</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Problems</h2>
+          <ul>
+            <li>Composed of mostly other people's code</li>
+            <li>Code is derived from Philip Pedrucko's code which was largely derived from WebGL's example</li>
+            <li>Very difficult to develop</li>
+            <li>I don't completely understand what is going on</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Realistic Goals</h2>
+          <ul>
+            <li>Following goals should be finished by the end of July</li>
+            <li>Should be 99% my own original code </li>
+            <li>Should be able to be scalable up to a million points</li>
+            <li>Fast, professional, open source</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Reach Goals</h2>
+          <ul>
+            <li>Should ideally be integrated in such a way that you are able to upload a nifti format file</li>
+            <li>Should be able to choose from a database of different preuploaded brains</li>
+            <li>Should be extensively documented with each function properly explained</li>
+          </ul>
+        </section>
+
+
+        <section data-background="#000066">
+          <h2>Progress this Week</h2>
+          <ul>
+            <li>Mostly debugging (further elaborated in the next slide)</li>
+            <li>Started manual documentation of code so I understand what each function does</li>
+            <li>Basic modifications tested (these can be seen in the JavascriptJovo folder)</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Error log</h2>
+          <ul>
+            <li>ThreeJS interaction with csv files is much more difficult than I originally thought</li>
+            <li><a href="JavascriptJovo/papaparse.html">Papaparse</a> compatatibility has been difficult for me to set up</li>
+            <li><a href="JavascriptJovo/clarity.html">Many </a> <a href="JavascriptJovo/claritymod.html">Examples </a>of <a href="JavascriptJovo/buttonexperiment.html">Failures</a>
+            <li>Changing minute details like the <a href="JavascriptJovo/whenyouchangethecolorfunction">color </a>in the example scatterplot renders the entire program broken</li>
+            <li>Frustratingly the documentation for ThreeJS is extremely elementary and the "tutorials" are just examples with no explanation given to structure </li>
+            <li>Only a few scatterplot examples are easily found online, and several of them are based off the original WebGL tutorial</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>When design goes astray</h2>
+          <ul>
+            <li>D3.js is a powerful tool that uses modern design to supplement versatility</li>
+            <li><a href="JavascriptJovo/weirdstyle.html">This</a> makes Bostock a sad man</li>
+            <li><a href="JavascriptJovo/clarityscatter.html">This</a> is a mediocre example less egregious coloring </li>
+            <li>Unfortunately still not a good representation of Clarity data (intensity is not represented) </li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Possible Solutions</h2>
+          <ul>
+            <li>1) Represent intensity scale with different colors ranging from low hex values to high hex values that are callibrated to the intensity range </li>
+            <li>2) Size of points callibrated to intensity scale - depends on the data scale</li>
+            <li>3) Intensity is represented by how many faces each 3 dimensional point has - terrible idea considering it will be very difficult to see </li>
+            <li>4) Intensity represented by opacity </li>
+          </ul>
+        </section>
+       
+        <section data-background="#000066">
+          <h1>Next Week</h1>
+          <ul>
+            <li> Even if it's far worse, create my own original version of the csv based visualizer </li>
+            <li> Email the creator of the Cosmic Visualizer for which function she used for intensity representation </li>
+            <li> Figure out the whole color ordeal - only being able to use gray or colored monstrosity is not ideal</li>
+          </ul>
+        </section>
+
+        <!--- Divider --> 
 
 				<section data-background="#000066">
 					<h1>fMRI Data Analysis</h1>
