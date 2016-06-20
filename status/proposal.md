@@ -111,6 +111,10 @@ Success for our group will be a published web tool that is functional and effect
 ##### What does success look like at defined points along the roadmap?
 
 - End of Summer: have pipeline complete and process lots of data
+ - Middle of June: choice of modules to try incorporating by end of july, and benchmark datasets processed (KKI, NKI, SWU)
+ - End of July: update QC from pngs and txt files to html page; choice of modules completed
+ - End of August: pipeline completed and ready for release, with all CoRR datasets processed and analyzed
+ - End of September: intra-dataset Quality Control page
 - End of first semester: have upload service completely integrated
 - End of second semester: have visualization tools completely built and summarize project
 
