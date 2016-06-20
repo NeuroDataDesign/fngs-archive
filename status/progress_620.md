@@ -86,33 +86,33 @@ A preliminary summary of the results might look as follows:
 
 The availability of users to scroll through the raw data, obtain voxelwise signal intensities, and play the timeseries as a movie. Also, users will be able to download data from here.
 
-<img src="../reveal/images/week_620/raw.png" width="400" />
+<img src="../reveal/images/week_619/raw.png" width="400" />
 
 ##### Processed exploration
 
 The availability of processed files (graphs, aligned mri scans, preprocessed only mri scans, etc) in a viewable and downloadable format.
 
-<img src="../reveal/images/week_620/processed.png" width="400" />
+<img src="../reveal/images/week_619/processed.png" width="400" />
 
-<img src="../reveal/images/week_620/graphs.png" width="400" />
+<img src="../reveal/images/week_619/graphs.png" width="400" />
 
 ##### QC-Signal statistics
 
 The availability of some summarizing signal images, as well as relevant statistics.
 
-<img src="../reveal/images/week_620/qc-smean.png" width="400" />
+<img src="../reveal/images/week_619/qc-smean.png" width="400" />
 
 An image showing the voxel wise mean signal intensity over time.
 
-<img src="../reveal/images/week_620/qc-sstd.png" width="400" />
+<img src="../reveal/images/week_619/qc-sstd.png" width="400" />
 
 An image showing the voxel wise standard deviation of signal intensity. 
 
-<img src="../reveal/images/week_620/qc-ssnr.png" width="400" />
+<img src="../reveal/images/week_619/qc-ssnr.png" width="400" />
 
 An image showing the voxel wise Signal to Noise (SNR) ratio.
 
-<img src="../reveal/images/week_620/qc-sstat.png" width="400" />
+<img src="../reveal/images/week_619/qc-sstat.png" width="400" />
 
 An image showing some summarizing statistics for the dataset. 
 
@@ -122,30 +122,30 @@ TODO EB: include minimum.
 
 The availability of useful summarizing signal images, as well as relevant statistics.
 
-<img src="../reveal/images/week_620/qc-transdisp.png" width="400" />
+<img src="../reveal/images/week_619/qc-transdisp.png" width="400" />
 
 A file showing the translational displacements, both absolute and relative, over time.
 
-<img src="../reveal/images/week_620/qc-transparam.png" width="400" />
+<img src="../reveal/images/week_619/qc-transparam.png" width="400" />
 
 A file summarizing the translational motion parameters over time. 
 
-<img src="../reveal/images/week_620/qc-absstat.png" width="400" />
+<img src="../reveal/images/week_619/qc-absstat.png" width="400" />
 
 Statistics for absolute translational motion.
 
-<img src="../reveal/images/week_620/qc-relstat.png" width="400" />
+<img src="../reveal/images/week_619/qc-relstat.png" width="400" />
 
 Statistics for relative translational motion.
 
-<img src="../reveal/images/week_620/qc-rotparam.png" width="400" />
+<img src="../reveal/images/week_619/qc-rotparam.png" width="400" />
 
 A file summarizing the rotational motion parameters over time. 
 
-<img src="../reveal/images/week_620/qc-absrel.png" width="400" />
+<img src="../reveal/images/week_619/qc-absrel.png" width="400" />
 
 Statistics for absolute rotational motion.
 
-<img src="../reveal/images/week_620/qc-rotrel.png" width="400" />
+<img src="../reveal/images/week_619/qc-rotrel.png" width="400" />
 
 Statistics for relative rotational motion.
