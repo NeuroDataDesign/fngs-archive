@@ -142,7 +142,7 @@ Statistics for relative translational motion.
 
 A file summarizing the rotational motion parameters over time. 
 
-<img src="../reveal/images/week_619/qc-absrel.png" width="400" />
+<img src="../reveal/images/week_619/qc-rotabs.png" width="400" />
 
 Statistics for absolute rotational motion.
 
