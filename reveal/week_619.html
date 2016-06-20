@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Design Team 0 6/12</title>
+		<title>Design Team 0 6/19</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/black.css">
@@ -39,95 +39,52 @@
 				</section>
 				
 				<section data-background="#000066">
-					<h2>Steps to Analysis</h2>
-					<ul>
-						<li>Raw Data</li>
-						<li>Distortion Correction</li>
-						<li>Motion Correction</li>
-						<li>Slice Timing Correction</li>
-						<li>Spatial Smoothing</li>
-						<li>Registration</li>
-						<li>Statistical Analysis</li>
-					</ul>
+					<h1>Quality Control Pages</h1>
 				</section>
 
-				<section data-background="#000066">					
-					<h2>Implemented Pipeline</h2>
-					<ul>
-						<li>Raw Data</li>
-						<li>Motion Correction</li>
-						<li>Registration</li>
-						<li>Timeseries Extraction</li>
-						<li>Graph Generation</li>
-					</ul>
-				</section>
-			
 				<section data-background="#000066">
-					<h2>Raw Data</h2>
+					<h2>Purpose for Developers</h2>
 					<ul>
-						<li>fMRI functional data</li>
-						<li>MPRAGE anatomical data</li>
+						<li>Adding modules: Verify that things don't go out of whack</li>
+						<li>Changing modules: Ability to show the change's impact in a quantifiable/visualizable way</li>
+						<li>May be easier to page thru QC manuals than search through thousands of figures manually</li>
 					</ul>
 				</section>
 
 				<section data-background="#000066">
-					<h2>Challenges that came up along the way</h2>
+					<h2>Purpose for Users</h2>
 					<ul>
-						<li>motion correction failures</li>
-						<li>making image comparisons before and after operations</li>
-						<li>deciding on metric for making image comparisons</li>
+						<li>They're trusting that you are doing things correctly; at least some insight into what's being done is helpful</li>
+						<li>Users need to be able to easily determine how good their data is, or "benchmark" measures</li>
+						<li>Graphs, Data, etc can be downloaded from here, so users can take what they want/need</li>
 					</ul>
 				</section>
 
 				<section data-background="#000066">
-					<h2>Motion Correction Issues</h2>
+					<h2>What goes into a quality control page</h2>
 					<ul>
-						<li>Recap: Motion correction corrects blurring from subjects moving their heads</li>
-						<li>Goal: to use existing corrective scripts for DTI graphs</li>
-						<li>Problem: Eddy correct fails for the scan type with fMRI graphs</li>
-						<li>Solution: Easy, use mcFLIRT!</li>
+						<li>Figures that are natural along the way: figures of the motions corrected, quality of registration, etc</li>
+						<li>Summary statistics and figures: make sense of the processed outputs</li>
 					</ul>
+				</section>
+				<section data-background="#000066">
+					<h2>Example of Quality Control Page for summary figures</h2>
+					<img src="images/week_619/qc-signalsnr.png" height="500">
 				</section>
 
 				<section data-background="#000066">
-					<h2>Image Comparison Issues</h2>
-					<ul>
-						<li>Recap: QC requires image comparisons before and after a step takes place</li>
-						<li>Goal: just take what goes in and compare to what comes out</li>
-						<li>Problem: resolution related issues</li>
-						<li>Solution: resample before performing a step</li>
-					</ul>
+					<h2>Example of Quality Control Page for Motion</h2>
+					<img src="images/week_619/qc-signaltransparam1.png" height="500">
 				</section>
 
 				<section data-background="#000066">
-					<h2>Metric for Image Comparisons</h2>
+					<h2>What to do next</h2>
 					<ul>
-						<li>Recap: need a metric that determines similarity between two arrays</li>
-						<li>Goal: use the DICE comparison metric</li>
-						<li>Problem: DICE comparison just checks overlap of values (exactness of overlap); does nothing for similarity of values</li>
-						<li>Solution: not the best solution, but so far using MSE helps</li>
+						<li>Start running data: Benchmarks are KKI, SWU, and NKI</li>
+						<li>Consider making QC pages HTML in near future (within next month?)</li>
+						<li>Add modules in order of importance: Spatial Smoothing, Skullstripping possible firsts</li>
 					</ul>
 				</section>
-
-				<section data-background="#000066">
-					<h2>Quality Control Example of Results</h2>
-					<ul>
-						<li>Left: image before Registration</li>
-						<li>Right: image after registration</li>
-						<li>Note: very good overlap with template; low MSE</li>
-					</ul>
-					<img src="images/week_612/registration.png" height="400">
-				</section>
-
-				<section data-background="#000066">
-					<h2>Timeline</h2>
-					<ul>
-						<li>End of Summer: have pipeline complete and process lots of data</li>
-						<li>End of first semester: have upload service completely integrated</li>
-						<li>End of second semester: have visualization tools completely built and summarize project</li>
-					</ul>
-				</section>
-
 
 				<!-- TODO: add your content here Eric and Albert -->
 				<section data-background="#000066">
