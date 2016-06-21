@@ -5,7 +5,7 @@ _______________________________________________________
 
 ##### What is the broadly important real-world problem (or class of problems) we are going to solve?
 
-The goal of this project is to make fMRI research based on timeseries acquisition a far more accessible realm for researchers, as current computational requirements of timeseries acquisition make this entire branch of fascinating research inaccessible without  massive technological investments.
+The twenty first century has seen the rapid ascent of technology into everyday life. From high performance desktops, to smart phones, to super computers, many industries rely on the power and consistency of computing. Machine learning has furthered their applicability, as computers can be trained to recognize nearly invisible (to the human eye) patterns  In the medical fields, however, many doctors continue to hinge on human power. The psychiatry field, for instance, continues to rely on psychological examinations almost exclusively when determining factors such as rate of development, mental disorder, and overall mental health. The brain, while superficially elegant, is an ovewhelmingly complex device consisting of billions of microscopic cells firing in unique patterns to create what we observe as thought. Imaging techniques such as functional Magnetic Resonance Imaging (fMRI) allow us to see these activation patterns in real time at a fine spatial resolution. Unfortunately, processing these graphs is a complex and expensive procedure. Through the Functional Neurodata Graph Service, we will provide a web processing and visualization service to allow researchers to upload their fMRI scans and have them processed with our optimized pipeline using our infrastructure. We will collect graphs and organize them in an easily accessible and visualizable database that is open source for outside investigators. Finally, we will continue the development of analysis methods that will enable computing to become a tool used in the psychological diagnostic sector. 
 
 ##### What will be required to solve that problem?
 
@@ -16,11 +16,13 @@ The goal of this project is to make fMRI research based on timeseries acquisitio
 
 ##### What scientific questions will we answered?
 
-The primary questions we seek to answer are: how can we maximize fMRI graph usability in a research setting, and how can we best prepare and present the results for users to help them in their goal of bringing connectomics to the diagnostic sector of neuroscience?
+How can we maximize pipeline reliability and discriminability while maintaining high performance and memory efficiency?
+
+How many scans does it take (1 rsfMRI, 1 task fMRI, 2 task fMRI and 1 rsfMRI, etc) to reliably diagnose psychiatric disorders?
 
 ##### What deliverable will we provide to the global citizens?
 
-The team will prepare a pipeline for fMRI processing, a robust and extensive suite of quality control metrics (novel and existing), and a web service for uploading and visualizing processed graphs. 
+The team will prepare a pipeline for fMRI processing, a robust and extensive suite of quality control metrics (novel and existing), and a web service for uploading and visualizing processed graphs. Also, the team will create a deployable EC2 instance preoloaded with our ndmg software (integrated fMRI and DTI processing pipeline).
 
 ### Feasibility
 
