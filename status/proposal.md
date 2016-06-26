@@ -114,7 +114,7 @@ As previously stated, to date, a number of resources exist to aid in the develop
 
 ##### How and when will success be measured/quantified?  Be as specific as possible.
 
-Success for our group will be a published web tool that is functional and effective.
+Success for our group will be a published web tool that is functional and effective. Small success will be defined as a minor impact on fMRI processing, and some research groups around the country use our services for their data processing. Medium success will be defined as many research groups using our services for their data processing, and collaborations with groups around the country developed as a result. People will begin to see the value of remote data processing in a research environment. Big success will be a redefinition of fMRI processing, from local cluster processing to cloud based or remote processing on optimized pipelines such as ours, bringing the entire field from a more secluded, within-university or within-grant research methodology towards a global initiative that bridges grants, universities, and national boundaries in a way previously not experienced in the computational neuroscience field. Success can be measured in terms of number of graphs processed, number of groups uploading graphs, number of collaborative papers/citations gained as a result, and volume of usage of our visualization tools.
 
 ##### What does success look like at defined points along the roadmap?
 
