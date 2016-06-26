@@ -14,11 +14,17 @@ The twenty first century has seen the rapid ascent of technology into everyday l
 - Funding: SIMPLEX
 - Societal stuff?: No special needs for adoption
 
-##### What scientific questions will we answered?
+##### What scientific questions will be answered?
 
 How can we maximize pipeline reliability and discriminability while maintaining high performance and memory efficiency?
 
-How many scans does it take (1 rsfMRI, 1 task fMRI, 2 task fMRI and 1 rsfMRI, etc) to reliably diagnose psychiatric disorders?
+How many scans does it take and what types of scans (1 rsfMRI, 1 task fMRI, 2 task fMRI and 1 rsfMRI, etc) to reliably diagnose psychiatric disorders?
+
+Can we effectively consider population metrics as they relate to connectivity (ie, can we link intelligence, mental disorders, growth and development rates, etc)?
+
+Is it possible to remove the psychiatric analysis component entirely from psychiatry (ie, can we make a brain scan the most reliable measure to the point where patients don't even need an evaluation)?
+
+Are there people who have brain connectivity that resembles that of a psychiatric disorder, yet don't display the symptoms/haven't been diagnosed? What are the implications (ie, will they be diagnosed? With what probability will they develop the disorder? Etc) of their connectivity on their long term prognosis?
 
 ##### What deliverable will we provide to the global citizens?
 
