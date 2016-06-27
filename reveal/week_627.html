@@ -1,0 +1,373 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Design Team 0 6/20</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background="#000066">
+					<h1>Design Team 0 Slides</h1>
+					<h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h1>F2G pipeline leg overview</h1>
+					<h2>Eric Bridgeford</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h1>Week's Accomplishments</h1>
+					<ul>
+						<li>Debugged more QC stuff</li>
+						<li>incorporated CPAC QC metrics</li>
+						<li>Ran FNGS on lots of data (KKI)</li>
+						<li>discriminability results for dataset</li>
+						<li>Made plan for upcoming week</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Results</h2>
+					<ul>
+						<li>Correlation matrix: matrix showing the correlations of individual rois during a resting state fMRI session</li>
+						<li>Goal: have the matrix produced be very close to a matrix produced from a scan taken at a later time</li>
+						<li>Reality: HAH! Guess again.</li>
+						<li>Distance matrix: shows the euclidian distances for all possible pairs of subjects' correlation matrices</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Distance Matrix Logic</h2>
+					<ul>
+						<li>Align subjects by their subject ids, and place same subject but different scans next to each other</li>
+						<li>Intuitively, expect same subject but different scans to be closer</li>
+						<li>Want to see distance values lower across the diagonal</li>
+						<li>Given: scan to same scan distance should be a perfect match (d = 0)</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>A typical Distance Matrix</h2>
+
+				</section>
+
+				<section data-background="#000066">
+					<h2>How can we improve</h2>
+					<ul>
+						<li>Ranking</li>
+						<li>Theory: maybe the correlations aren't the same, but the ordering of connection weights is</li>
+						<li>Reality: This holds relatively true</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Distance Matrix showing ranked correlation weights</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Density Estimates</h2>
+					<ul>
+						<li>Theory: want to have some way of visualizing intra subject vs inter subject graph distances</li>
+						<li>Solution: Take a kernel density estimate (KDE)</li>
+						<li>Gives us a continuous function to approximate the density at which graph distances appear in our dataset</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>KDE Plot</h2>
+
+				</section>
+
+				<section data-background="#000066">
+					<h2>What to do next</h2>
+					<ul>
+						<li>Try another dataset (NKI TR = 645 ms)</li>
+						<li>Figure out WTF is up with registration</li>
+						<li>Read papers on spatial smoothing and some other methods for quantifying/improving signal:noise ratio</li>
+						<li>Enjoy vacation!</li>
+					</ul>
+				</section>
+
+				<!-- Divider -->
+
+				<section data-background="#000066">
+          <h1>Javascript based visualization</h1>
+          <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+          <h1>Introduction to ClarityExplorer</h1>
+          <h%>NOTE: for all csvs please use the file located <a href="https://github.com/Upward-Spiral-Science/ugrad-data-design-team-0/blob/gh-pages/reveal/ThreejsScatter/claritybrain.csv">here </a>
+        </section>
+
+        <section data-background="#000066">
+          <h2>What is ClarityExplorer</h2>
+          <ul>
+            <li>Primarily python based visualization tool <a href="https://github.com/Upward-Spiral-Science/claritycontrol">tool</a></li>
+            <li><a href = "https://raw.githubusercontent.com/Upward-Spiral-Science/claritycontrol/master/figs/final_report/clarity3d1.png">3D viewer with color correspondance to intensity (trying to change to opacity based)</a></li>
+            <li><a href = "https://raw.githubusercontent.com/Upward-Spiral-Science/claritycontrol/master/figs/final_report/clarity3d2.png">Uses OpenGL for visualization</a></li>
+            <li> Currently can only be run directly in the terminal</li>
+            <li> Has implementation with Plotly and Matplotlib </li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>What should ClarityExplorer look like?</h2>
+          <ul>
+            <li>WebGL based Javascript application</li>
+            <li>Scalable up to a million points</li>
+            <li>Fast, professional, open source</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2><a href="JavascriptJovo/grayborder.html">Current prototype</a></h2>
+          <ul>
+            <li>WebGL based Javascript application</li>
+            <li>Scalable up to million points but very slow</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Problems</h2>
+          <ul>
+            <li>Composed of mostly other people's code</li>
+            <li>Code is derived from Philip Pedrucko's code which was largely derived from WebGL's example</li>
+            <li>Very difficult to develop</li>
+            <li>I don't completely understand what is going on</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Realistic Goals</h2>
+          <ul>
+            <li>Following goals should be finished by the end of July</li>
+            <li>Should be 99% my own original code </li>
+            <li>Should be able to be scalable up to a million points</li>
+            <li>Fast, professional, open source</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Reach Goals</h2>
+          <ul>
+            <li>Should ideally be integrated in such a way that you are able to upload a nifti format file</li>
+            <li>Should be able to choose from a database of different preuploaded brains</li>
+            <li>Should be extensively documented with each function properly explained</li>
+          </ul>
+        </section>
+
+
+        <section data-background="#000066">
+          <h2>Progress this Week</h2>
+          <ul>
+            <li>Mostly debugging (further elaborated in the next slide)</li>
+            <li>Started manual documentation of code so I understand what each function does</li>
+            <li>Basic modifications tested (these can be seen in the JavascriptJovo folder)</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Error log</h2>
+          <ul>
+            <li>ThreeJS interaction with csv files is much more difficult than I originally thought</li>
+            <li><a href="JavascriptJovo/papaparse.html">Papaparse</a> compatatibility has been difficult for me to set up</li>
+            <li><a href="JavascriptJovo/clarity.html">Many </a> <a href="JavascriptJovo/claritymod.html">Examples </a>of <a href="JavascriptJovo/buttonexperiment.html">Failures</a>
+            <li>Changing minute details like the <a href="JavascriptJovo/whenyouchangethecolorfunction">color </a>in the example scatterplot renders the entire program broken</li>
+            <li>Frustratingly the documentation for ThreeJS is extremely elementary and the "tutorials" are just examples with no explanation given to structure </li>
+            <li>Only a few scatterplot examples are easily found online, and several of them are based off the original WebGL tutorial</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>When design goes astray</h2>
+          <ul>
+            <li>D3.js is a powerful tool that uses modern design to supplement versatility</li>
+            <li><a href="JavascriptJovo/weirdstyle.html">This</a> makes Bostock a sad man</li>
+            <li><a href="JavascriptJovo/clarityscatter.html">This</a> is a mediocre example less egregious coloring </li>
+            <li>Unfortunately still not a good representation of Clarity data (intensity is not represented) </li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Possible Solutions</h2>
+          <ul>
+            <li>1) Represent intensity scale with different colors ranging from low hex values to high hex values that are callibrated to the intensity range </li>
+            <li>2) Size of points callibrated to intensity scale - depends on the data scale</li>
+            <li>3) Intensity is represented by how many faces each 3 dimensional point has - terrible idea considering it will be very difficult to see </li>
+            <li>4) Intensity represented by opacity </li>
+          </ul>
+        </section>
+       
+        <section data-background="#000066">
+          <h1>Next Week</h1>
+          <ul>
+            <li> Even if it's far worse, create my own original version of the csv based visualizer </li>
+            <li> Email the creator of the Cosmic Visualizer for which function she used for intensity representation </li>
+            <li> Figure out the whole color ordeal - only being able to use gray or colored monstrosity is not ideal</li>
+          </ul>
+        </section>
+
+        <!--- Divider --> 
+
+				<section data-background="#000066">
+					<h1>fMRI Data Analysis</h1>
+					<h2>Eric Walker</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Transformation models</h2>
+					<ul>
+						<li>Linear operators <ul>
+							<li>Translation, rotation, scaling, shearing (12 parameters)</li>
+							<li>Rigid body transformation (6 parameters)</li>
+						</ul></li>
+						<li>Nonlinear transformations<ul>
+							<li>Basis functions – polynomial function of original XYZ (many more parameters increasing with the order)</li>
+						</ul></li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Within-modality and between-modality</li>
+						<li>Least squares (averaged squared difference between voxel intensities)</li>
+						<li>Normalized correlation (measures linear relationship – default for FSL)</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Mutual information<ul>
+							<li>Joint histogram plots frequency of combinations of intensities (diagonal if equal)</li>
+							<li>MI is the difference between the total entropy of the individual images and the joint entropy</li>
+						</ul></li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Cost functions</h2>
+					<ul>
+						<li>Optimization attempts to minimize cost function<ul>
+							<li>Gradient descent – start at particular values then modify</li>
+							<li>Susceptible to local minima (evident when large # of parameters)</li>
+						</ul></li>
+						<li>Regularization – penalty for more complex warps</li>
+						<li>Multiscale optimization – estimate parameters at low resolution then move higher</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Interpolation</h2>
+					<ul>
+						<li>Nearest neighbor (rarely used)</li>
+						<li>Tri-linear (weighted average)</li>
+						<li>Higher order (sinc, basis functions) - different windows</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Quality control techniques</h2>
+					<ul>
+						<li>Spikes, ghosting, etc.</li>
+						<li>Remove artifactual component to create “denoised” dataset</li>
+						<li>Explicit criteria for rejection to prevent bias</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Distortion correction</h2>
+					<ul>
+						<li>Distortions occur where air and tissue meet</li>
+						<li>Use field map that characterizes B0 field to correct dropout</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Slice timing correction</h2>
+					<ul>
+						<li>Choose reference slice and interpolate rest of data (know timing of acquisition)</li>
+						<li>Move away from this type of correction in practice<ul>
+							<li>Artifacts in one image can be propagated throughout the time series</li>
+							<li>Event-related analysis relatively robust to slice timing problems</li>
+						</ul></li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Motion correction</h2>
+					<ul>
+						<li>Bulk motion vs spin history effect (disruption in signal itself – cannot be correct with standard techniques)</li>
+						<li>Each image aligned to common reference scan (rigid body transformation)</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Motion correction</h2>
+					<ul>
+						<li>Prospective motion correction – modify location during acquisition</li>
+						<li>Should occur before slice timing correction (if latter is used) – effect of motion on voxel intensity</li>
+						<li>Monitor physiological motion (heart rate, breathing) or use cardiac gating</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Spatial smoothing</h2>
+					<ul>
+						<li>Apply low-pass filter to blur image<ul>
+							<li>Increases signal-to-noise ratio</li>
+							<li>Benefits of gain in larger features outweighs loss of smaller features</li>
+							<li>Some analysis methods require specific degree of spatial smoothness</li>
+						</ul></li>
+						<li>In general, FWHM of twice voxel size is good starting point</li>
+					</ul>
+				</section>
+
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
