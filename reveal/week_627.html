@@ -240,112 +240,130 @@
 				</section>
 
 				<section data-background="#000066">
-					<h2>Transformation models</h2>
+					<h2>Spatial normalization</h2>
 					<ul>
-						<li>Linear operators <ul>
-							<li>Translation, rotation, scaling, shearing (12 parameters)</li>
-							<li>Rigid body transformation (6 parameters)</li>
-						</ul></li>
-						<li>Nonlinear transformations<ul>
-							<li>Basis functions – polynomial function of original XYZ (many more parameters increasing with the order)</li>
+						<li>Main goal to transform brain to reduce variability between subjects</li>
+						<li>Talairach atlas – uses landmark-based normalization, which has been rejected for automated registration to templates</li>
+						<li>MNI templates – most commonly used, based on mean of Talairach-normalized images</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Normalization preprocessing</h2>
+					<ul>
+						<li>Bias field correction adjusts variation in intensity across image – tissue segmentation approach outperforms global filtering approach</li>
+						<li>Brain extraction (skull-stripping) removes non-brain tissue from image (number of different algorithms with varying effectiveness across datasets)</li>
+						<li>Tissue segmentation separates gray matter, white matter, and CSF</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Processing stream</h2>
+					<ul>
+						<li>Poststatistics normalization (FSL) more economical in terms of disk space</li>
+						<li>fMRI -> coplanar (anatomical), coplanar -> high-res, high-res -> standard space</li>
+						<li>Better to concatenate process to make one single transformation to reduce error</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Normalization Methods</h2>
+					<ul>
+						<li>Landmark-based – uses anatomical features</li>
+						<li>Volume-based (most common)</li>
+						<li>Computational anatomy – transform uses vector fields that respect anatomical constraints</li>
+						<li>Surface-based – extract cortical surface and register to a surface atlas (more accurate for cortical surface but cannot analyze deep brain features)</li>
+						<li>Nonlinear registration preferred over linear b/c it’s more accurate</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Normalization quality control</h2>
+					<ul>
+						<li>Examine normalized image with template overlaid, or average of normalized images to see if it looks like a blurry real brain, or movie of images</li>
+						<li>Use special methods for children, elderly, or brains with lesions</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Statistical modeling – single subject</h2>
+					<ul>
+						<li>How to create general linear model (GLM) predictor that will model BOLD signal as accurately as possible?</li>
+						<li>Mass univariate data analysis – models signal in a single voxel in the brain at a time</li>
+						<li>BOLD signal characteristics<ul>
+							<li>peak height, time to peak, width, initial dip (generally ignored), post-stimulus undershoot</li>
+							<li>Exhibits linear time invariant properties (scales, sums, and shifts)</li>
 						</ul></li>
 					</ul>
 				</section>
 
 				<section data-background="#000066">
-					<h2>Cost functions</h2>
+					<h2>BOLD signal</h2>
 					<ul>
-						<li>Within-modality and between-modality</li>
-						<li>Least squares (averaged squared difference between voxel intensities)</li>
-						<li>Normalized correlation (measures linear relationship – default for FSL)</li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>Cost functions</h2>
-					<ul>
-						<li>Mutual information<ul>
-							<li>Joint histogram plots frequency of combinations of intensities (diagonal if equal)</li>
-							<li>MI is the difference between the total entropy of the individual images and the joint entropy</li>
+						<li>Create expected signal by convolving stimulus time series w/ hemodynamic response function (HRF)</li>
+						<li>Estimate HRF via average of evoked responses (canonical HRF – double-gamma)</li>
+						<li>Bias-variance tradeoff – incorporate more parameters in HRF for increased flexibility allowing more variability in the estimates<ul>
+							<li>HRF plus derivatives, finite impulse response model, constrained basis sets</li>
 						</ul></li>
 					</ul>
 				</section>
 
 				<section data-background="#000066">
-					<h2>Cost functions</h2>
+					<h2>Other modeling considerations</h2>
 					<ul>
-						<li>Optimization attempts to minimize cost function<ul>
-							<li>Gradient descent – start at particular values then modify</li>
-							<li>Susceptible to local minima (evident when large # of parameters)</li>
+						<li>Time resolution, parametric modulation</li>
+						<li>Behavioral response time, motion parameters (nuisance regressors)</li>
+						<li>Orthogonalization (correlation between regressors)</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>BOLD noise</h2>
+					<ul>
+						<li>White noise (broadband) and structured/colored noise (such as physiological fluctuations at particular frequencies)</li>
+						<li>Low frequency drift (generally 0 to 0.015 Hz)</li>
+						<li>High-pass filtering followed by prewhitening to remove temporal correlation</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Statistical modeling – group analysis</h2>
+					<ul>
+						<li>Mixed effects model – include between-subject variance in addition to within-subject<ul>
+							<li>First level: model the data for each subject separately</li>
+							<li>Second level: estimate mean for each group and use two-sample t-test</li>
 						</ul></li>
-						<li>Regularization – penalty for more complex warps</li>
-						<li>Multiscale optimization – estimate parameters at low resolution then move higher</li>
+						<li>Mean centering (makes intercepts more useful)</li>
 					</ul>
 				</section>
 				
 				<section data-background="#000066">
-					<h2>Interpolation</h2>
+					<h2>Statistical inference</h2>
 					<ul>
-						<li>Nearest neighbor (rarely used)</li>
-						<li>Tri-linear (weighted average)</li>
-						<li>Higher order (sinc, basis functions) - different windows</li>
-					</ul>
-				</section>
-				
-				<section data-background="#000066">
-					<h2>Quality control techniques</h2>
-					<ul>
-						<li>Spikes, ghosting, etc.</li>
-						<li>Remove artifactual component to create “denoised” dataset</li>
-						<li>Explicit criteria for rejection to prevent bias</li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>Distortion correction</h2>
-					<ul>
-						<li>Distortions occur where air and tissue meet</li>
-						<li>Use field map that characterizes B0 field to correct dropout</li>
-					</ul>
-				</section>
-
-				<section data-background="#000066">
-					<h2>Slice timing correction</h2>
-					<ul>
-						<li>Choose reference slice and interpolate rest of data (know timing of acquisition)</li>
-						<li>Move away from this type of correction in practice<ul>
-							<li>Artifacts in one image can be propagated throughout the time series</li>
-							<li>Event-related analysis relatively robust to slice timing problems</li>
+						<li>Voxel-level vs. cluster-level vs. set-level inference<ul>
+							<li>Voxel-level: examining whether statistic at each voxel exceeds a threshold u</li>
+							<li>Cluster-level: primary threshold uc is applied and groups of contiguous voxels above uc are defined as clusters; then the significance of each cluster is determined by comparing size (# of voxels) to critical cluster size threshold k</li>
+							<li>Set-level: number of clusters that are larger than an arbitrary cluster size</li>
 						</ul></li>
 					</ul>
 				</section>
 				
 				<section data-background="#000066">
-					<h2>Motion correction</h2>
+					<h2>Multiple testing problem</h2>
 					<ul>
-						<li>Bulk motion vs spin history effect (disruption in signal itself – cannot be correct with standard techniques)</li>
-						<li>Each image aligned to common reference scan (rigid body transformation)</li>
-					</ul>
-				</section>
-				
-				<section data-background="#000066">
-					<h2>Motion correction</h2>
-					<ul>
-						<li>Prospective motion correction – modify location during acquisition</li>
-						<li>Should occur before slice timing correction (if latter is used) – effect of motion on voxel intensity</li>
-						<li>Monitor physiological motion (heart rate, breathing) or use cardiac gating</li>
-					</ul>
-				</section>
-				
-				<section data-background="#000066">
-					<h2>Spatial smoothing</h2>
-					<ul>
-						<li>Apply low-pass filter to blur image<ul>
-							<li>Increases signal-to-noise ratio</li>
-							<li>Benefits of gain in larger features outweighs loss of smaller features</li>
-							<li>Some analysis methods require specific degree of spatial smoothness</li>
+						<li>Familywise error rate – chance of one or more false positives anywhere in the image<ul>
+							<li>Bonferroni correction, random field theory (topology of threshold images), Monte Carlo, permutation test (slow but recommended for accuracy)</li>
 						</ul></li>
-						<li>In general, FWHM of twice voxel size is good starting point</li>
+						<li>False discovery rate – average chance of each voxel to be a false positive</li>	
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>More on statistical inference</h2>
+					<ul>
+						<li>Masking and conjunctions (similarities in effects)</li>
+						<li>Use regions of interests (ROIs) to reduce volume of brain searched for activations</li>
+						<li>Statistical power – area to the right of null distribution threshold under alternative distribution</li>
 					</ul>
 				</section>
 
