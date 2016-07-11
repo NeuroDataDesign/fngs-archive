@@ -5,6 +5,6 @@
 
 while read -r npzline; do
     ./npz2csv.py $npzline ${npzline//.npz/.csv}
-    ./csv2rds.R ${npzline//(.npz)$/.csv} ${npzline//.npz/.rds}
+    ./csv2rds.R ${npzline//.npz/.csv} ${npzline//.npz/.rds}
 done < <(find $(pwd) -name "*.npz")
 
