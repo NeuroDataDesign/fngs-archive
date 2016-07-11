@@ -190,6 +190,14 @@
             <h1>Initial Attempts</h1>
             <ul>
                 <li>Tried to recreate original "histogram equalization" code</li>
+                <li>Realized the original approach was not localized histogram equalization, it was regular histogram equalization</li>
+                <li>This is important because Nifti images are rather similar in intensity - need to be contrasted from eachother to achieve "texture"</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Original Approach</h1>
+                <li>Tried to modify scikit's code</li>
                 <li>Since I was unable to get scikit's code running I had used some other resource online</li>
                 <li>It turns out that this program was only able to conduct image spreading not image equalization</li>
                 <li>Image spreading is deceptive in that it is a form of histogram equalization, however randomly chooses intensities instead of the most frequent ones</li>
@@ -211,7 +219,6 @@
             <h1>Result</h1>
             <ul>
                 <li>Complete failure</li>
-                <li>
             </ul>
         </section>
 
@@ -229,6 +236,13 @@
                 <li>Something wrong with computer's python dependencies (malware?)</li>
                 <li>Despite reinstalling OSX, OpenCV will not build</li>
                 <li>Hopefully will save up some money so I can get my computer looked at</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Custom Script</h1>
+            <ul>
+                <li>Tried to modify the image smoothing script based on opencv's python code, still had size problems</li>
             </ul>
         </section>
 
