@@ -8,7 +8,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 def npz2csv(npzname, csvname):
-    data = np.load(npzname)['roi_data']
+    data = np.load(npzname)['arr_0']
     np.savetxt(csvname, data)
 
 def main():
