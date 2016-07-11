@@ -13,13 +13,17 @@
 # limitations under the License.
 #
 #
+# open_timeseries.R
+# Created by Eric Bridgeford on 2016-11-07.
 # Email: ebridge2@jhu.edu
+# Copyright (c) 2016. All rights reserved.
 #
 #a function for opening the graph data
 # Input:
 #   fnames[nx1]: the filenames
 #   scan_pos[1]: the position of the subject id in the filenames, separated by _ characters
 # Outputs:
+#   ts[[kxkxn]][n]][kxt]: the ts loaded from the specified file names
 #   subjects[nx1]: the subject ids
 #
 open_timeseries <- function(fnames, scan_pos=2) {
@@ -29,9 +33,14 @@ open_timeseries <- function(fnames, scan_pos=2) {
   ts <- list()
   for (i in 1:numscans) { # most of the preprocessing now done in python instead
     print(i)
+    tts <- readRDS(fnames[i]) # read the graph from the filename
     basename <- basename(fnames[i])     # the base name of the file
     base_split <- strsplit(basename, "_") # parse out the subject, which will be after the study name
     subjects[i] <- unlist(base_split)[scan_pos] # subject name must be a string, so do not convert to numeric
+    tts[is.nan(tts)] <- 0
+    ts[[i]] <-tts
+  }
   pack <- list(ts, subjects)# pack up the subject ids and the graphs
   return(pack)
 }
+
