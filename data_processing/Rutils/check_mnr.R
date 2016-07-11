@@ -15,6 +15,7 @@ source('signal2zscore.R')
 source('obs2corr.R')
 require('ggplot2')
 require('reshape2')
+require('Rmisc')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
@@ -44,6 +45,8 @@ for (subject in names(corr)) {
   counter <- counter + 1
 }
 
+## Compute MNR ----------------------------------------------------------------
+
 thresh_obj <- thresh_mnr(wgraphs, sub)
 
 mnrthresh <- thresh_obj[[1]]
@@ -53,3 +56,31 @@ ranked_graphs <- rank_matrices(wgraphs)
 Drank <- distance(ranked_graphs)
 mnrrank <- mnr(rdf(Drank, sub))
 
+if (mnrthresh > mnrrank) {
+  maxmnr <- mnrthresh
+  Dmax <- Dthresh
+  winner <- 'thresh'
+} else {
+  maxmnr <- mnrrank
+  Dmax <- Drank
+  winner <- 'rank'
+}
+
+## Produce Plots for MNR --------------------------------------------------------
+
+kdeobj <- hell_dist(Dmax, sub)
+kde_dist <- data.frame(kdeobj[[1]]$y, kdeobj[[2]]$y, kdeobj[[1]]$x)
+colnames(kde_dist) <- c("intra", "inter", "Graph Distance")
+meltkde <- melt(kde_dist, id="Graph Distance")
+colnames(meltkde) <- c("Graph Distance", "Relationship", "Probability")
+
+distance_plot <- ggplot(melt(Dmax), aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(color="white") +
+  scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+  xlab("Scan") + ylab("Scan") + ggtitle(sprintf('MNR = %.4f, best = %s', maxmnr, winner)) +
+  theme(text=element_text(size=20))
+
+kde_plot <- ggplot()+geom_ribbon(data=meltkde, aes(x=`Graph Distance`, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+  ggtitle("Intra and Inter Subject Relationships") + theme(text=element_text(size=20))
+
+multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
