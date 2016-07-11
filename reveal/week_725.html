@@ -1,0 +1,291 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FNGS 7/11</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background="#000066">
+            <h1>Design Team 0 Slides</h1>
+            <h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNGS pipeline leg overview</h1>
+            <h2>Eric Bridgeford</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Had a dope vacation</li>
+                <li>read some papers</li>
+                <li>Ran FNGS on lots of data and made adjustments (NKI)</li>
+                <li>discriminability results for dataset</li>
+                <li>Made plan for upcoming week</li>
+                <li>started data for Da (1800 scans at 1mm res)</li>
+                <li>Added qc for downsampling</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Registration Issues</h1>
+            <ul>
+                <li>Noticed that registration worked well for some subjects and poorly for others</li>
+                <li>Noticed that entire datasets could be impacted by poor registration (NKI)</li>
+                <li>No online support :(</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Initial Attempts</h1>
+            <ul>
+                <li>tried to copy other peoples' registration methods</li>
+                <li>found that most failed in some way that made them poorly generalizable to other datasets</li>
+                <li>tried nonlinear registration (FNIRT) which performed poorly (more on this later)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Registration Solution</h1>
+            <ul>
+                <li>Looked at differences between KKI scans and NKI scans</li>
+                <li>See that skull was the critical difference (very visible on KKI, not very on NKI)</li>
+                <li>Tried different combinations of skull stripping, and settled on...</li>
+                <li>align be'd s0 to be'd mprage, be'd mprage to template brain, then skull-on fmri stack to template</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Why this works</h1>
+            <ul>
+                <li>Our registration is "optimized" for the brain tissues</li>
+                <li>Doesn't get confused by skulls, which can look poor on fMRI</li>
+                <li>Limitations: skullstripping isn't the most robust procedure</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Example that failed previously</h1>
+            <img src="images/week_711/reg_fail.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>...And after correction</h1>
+            <img src="images/week_711/reg_better.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>New Results</h1>
+            <img src="images/week_711/mnr.png" height="400">
+            <ul>
+                <li>MNR example scripts here: https://github.com/Upward-Spiral-Science/fngs/blob/master/data_processing/Rutils/check_mnr.R</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Goals for Week</h1>
+            <ul>
+                <li>Finish running Da's stuff</li>
+                <li>Figure out FNIRT</li>
+                <li>Add spatial smoothing module and see how it impacts mnr</li>
+                <li>Add code for increasing interchangeability of atlases/templates/etc and run on more labelled atlases</li>
+            </ul>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Autoregression on Timeseries</h1>
+            <h2>Eric Walker</h2>
+        </section>
+        
+         <section data-background="#000066">
+            <h1>Raw graph test</h1>
+            <img src="images/week_711/raw_graph_discrim.png" height="400">
+            <p>Data from: http://openconnecto.me/mrdata/share/fmri/ cpacv0392/NKI24_mx645/graphs/FSL_frf_nsc_gsr_cc2/</p>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Autoregression</h1>
+            <ul>
+                <li>Calculated AR on dataset found in repo: https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/data_processing/fngs_v1/rds_files</li>
+                <li>34 resting scans from 22 subjects (900 data points each)</li>
+                <li>Examined effect of autoregression on mnr</li>
+            </ul>
+        </section>
+        
+         <section data-background="#000066">
+            <h1>AR(0)</h1>
+            <img src="images/week_711/AR(0).jpeg" height="400">
+        </section>
+        
+         <section data-background="#000066">
+            <h1>AR(1)</h1>
+            <img src="images/week_711/AR(1).jpeg" height="400">
+        </section>
+        
+         <section data-background="#000066">
+            <h1>AR(2)</h1>
+            <img src="images/week_711/AR(2).jpeg" height="450">
+        </section>
+        
+         <section data-background="#000066">
+            <h1>AR(3)</h1>
+            <img src="images/week_711/AR(3).jpeg" height="475">
+        </section>
+
+         <section data-background="#000066">
+            <h1>MNR</h1>
+            <img src="images/week_711/mnr.jpeg" height="475">
+        </section>
+
+        <!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Recovered some of my hearing</li>
+                <li>Read some papers on contrast correction and histogram equalization</li>
+                <li>Recreated original histogram equalization code</li>
+                <li>Made plan for upcoming week</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3><a href = "http://scikit-image.org/docs/dev/auto_examples/plot_equalize.html">What is histogram equalization</a></h3>
+            <ul>
+                <li>Contrast enhancement through image intensity adjustments</li>
+            </ul>
+            <h3><a href = "http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html#sphx-glr-auto-examples-color-exposure-plot-local-equalize-py">What is local histogram equalization</a></h3>
+            <ul>
+                <li>Contrast enhancement through spreading the most frequent intensities in an image</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Initial Attempts</h1>
+            <ul>
+                <li>Tried to recreate original "histogram equalization" code</li>
+                <li>Realized the original approach was not localized histogram equalization, it was regular histogram equalization</li>
+                <li>This is important because Nifti images are rather similar in intensity - need to be contrasted from eachother to achieve "texture"</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Original Approach</h1>
+                <li>Tried to modify scikit's code</li>
+                <li>Since I was unable to get scikit's code running I had used some other resource online</li>
+                <li>It turns out that this program was only able to conduct image spreading not image equalization</li>
+                <li>Image spreading is deceptive in that it is a form of histogram equalization, however randomly chooses intensities instead of the most frequent ones</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Debugging</h1>
+            <ul>
+                <li>Original reason why I didn't use Scikit's histogram equalization technique is that it's not easy to use</li>
+                <li>Kernel size and img_to_float function tends to cause problems in even basic images - though this is more likely my fundamental misunderstandings of image equalization than a problem with scikit's code</li>
+                <li>Biggest challenge is determining what the kernel size is for the Nifti images</li>
+            </ul>
+        </section>
+
+
+        <section data-background="#000066">
+            <h1>Debugging part 2</h1>
+            <ul>             
+                <li>Second biggest challenge is determining how to scale up Scikit's code (which is designed for 2D images) to a 3D image
+                <li>Decided to start from the basics and work my way up to the Clarity brain images</li>
+                <li>Even if code is able to work on bicolor 4d images, can most likely convert Clarity</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Result</h1>
+            <ul>
+                <li>Complete failure</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Extended Results</h1>
+            <ul>
+                <li>The main failure stems from a conversion error</li>
+                <li>I'm going to create an ipython notebook with explicit documentation and send it to Scikit - they might consider helping me</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>OpenCV</h1>
+            <ul>
+                <li>Something wrong with computer's python dependencies (malware?)</li>
+                <li>Despite reinstalling OSX, OpenCV will not build</li>
+                <li>Another concern is that OpenCV will not work with the Nifti images</li>
+                <li>Hopefully will save up some money so I can get my computer looked at</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Custom Script</h1>
+            <ul>
+                <li>Tried to modify the image smoothing script based on opencv's python code, still had size problems</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Goals for Week</h1>
+            <ul>
+                <li>Make histogram equalization work</li>
+                <li>Have proof of concept</li>
+                <li>Scale to 3D</li>
+                <li>If things don't work learn simpleitk and beg Kwame to help me when he's free</li>
+            </ul>
+        </section>
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+</body>
+</html>
