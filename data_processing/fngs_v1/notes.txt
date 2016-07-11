@@ -1,0 +1,3 @@
+pipeline features linear registration, whereby we align the s0 (0th slice of the fMRI vol) to the mprage BRAIN,
+and then the mprage BRAIN to the atlas BRAIN, and then the entire 4d volume to the atlas template using a
+combination of the other transforms.
