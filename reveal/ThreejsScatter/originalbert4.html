@@ -1,0 +1,308 @@
+<html>
+<head>
+    <script src="three.min.js"></script>
+    <script src="d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style type="text/css">
+    body {
+        margin: 0px;
+        padding: 0px;
+        color: #fff;
+        background-color: #000;
+        overflow: hidden;
+    }
+    #container {
+        width:960px;
+        height:500px;
+    }
+    </style>
+
+</head>
+<div id="wrapper">
+    <p>
+        <input id="uploader" name="uploader" type="file" />
+    </p>
+    <div id="container"></div>
+</div>
+
+<body>
+
+
+    <script>
+
+
+    function createTextCanvas(text, color, font, size) {
+        size = size || 24;
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        var fontStr = (size + 'px ') + (font || 'Arial');
+        ctx.font = fontStr;
+        var w = ctx.measureText(text).width;
+        var h = Math.ceil(size);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.font = fontStr;
+        ctx.fillStyle = color || 'black';
+        ctx.fillText(text, 0, Math.ceil(size * 0.8));
+        return canvas;
+    }
+
+    function createText2D(text, color, font, size, segW, segH) {
+        var canvas = createTextCanvas(text, color, font, size);
+        var plane = new THREE.PlaneGeometry(canvas.width, canvas.height, segW, segH);
+        var tex = new THREE.Texture(canvas);
+        tex.needsUpdate = true;
+        var planeMat = new THREE.MeshBasicMaterial({
+            map: tex,
+            color: 0xffffff,
+            transparent: true
+        });
+        var mesh = new THREE.Mesh(plane, planeMat);
+        mesh.scale.set(0.25, 0.25, 0.25);
+        mesh.doubleSided = true;
+        return mesh;
+    }
+
+
+    // from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+
+    function hexToRgb(hex) { //TODO rewrite with vector output
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function sq(x) {
+        var s = Math.pow(x, 2);
+        return s;
+    }
+
+    function getPts(x) {
+        //console.log(x)
+        var unfiltered = [],
+            lowPass = [],
+            highPass = [];
+
+        x.forEach(function(d, i) {
+
+            var line = d.split(",");
+
+            unfiltered[i] = {
+                x: +line[0],
+                y: +line[1],
+                z: +line[2]
+            };
+            lowPass[i] = {
+                x: +line[4],
+                y: +line[5],
+                z: +line[6]
+            };
+            highPass[i] = {
+                x: +line[7],
+                y: +line[8],
+                z: +line[9]
+            };
+        })
+        var xyzData = {
+            unfiltered: unfiltered,
+            lowPass: lowPass,
+            highPass: highPass
+        }
+        return xyzData;
+    }
+
+    var uploader = document.getElementById("uploader");
+    var reader = new FileReader();
+    var data;
+
+    reader.onload = function(e) {
+        var contents = e.target.result;
+        var rawData = contents.split(/\n/);
+        var tempData = rawData.slice(2, rawData.length);
+        data = getPts(tempData);
+        scatter(data);
+
+        // remove button after loading file
+        uploader.parentNode.removeChild(uploader);
+    };
+
+    uploader.addEventListener("change", handleFiles, false);
+
+    function handleFiles() {
+        var file = this.files[0];
+        reader.readAsText(file);
+    };
+
+    var renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+    var w = document.body.clientWidth;
+    var h = document.body.clientHeight;
+
+    renderer.setSize(w, h);
+    document.getElementById("container").appendChild(renderer.domElement);
+
+    //renderer.setClearColorHex(0xEEEEEE, 1.0);
+    renderer.setClearColor(new THREE.Color(0, 1));
+
+    var camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
+    camera.position.z = 200;
+    camera.position.x = -100;
+    camera.position.y = 100;
+
+    var scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2( 0xFFFFFF, 0.0035 );
+    var ambientLight = new THREE.AmbientLight( 0x222222 );
+    var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    light.position.set( 200, 400, 500 );
+    
+    var light2 = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    light2.position.set( -400, 200, -300 );
+
+    scene.add(ambientLight);
+    scene.add(light);
+    scene.add(light2);
+
+    var scatterPlot = new THREE.Object3D();
+    scene.add(scatterPlot);
+
+    scatterPlot.rotation.y = 0;
+
+    function v(x, y, z) {
+        return new THREE.Vector3(x, y, z);
+    }
+
+    var format = d3.format("+.3f");
+
+    function scatter(data) {
+
+        var temp = data.unfiltered;
+        var xExent = d3.extent(temp, function(d) {
+                return d.x;
+            }),
+            yExent = d3.extent(data.unfiltered, function(d) {
+                return d.y;
+            }),
+            zExent = d3.extent(data.unfiltered, function(d) {
+                return d.z;
+            });
+
+        var vpts = {
+            xMax: xExent[1],
+            xCen: (xExent[1] + xExent[0]) / 2,
+            xMin: xExent[0],
+            yMax: yExent[1],
+            yCen: (yExent[1] + yExent[0]) / 2,
+            yMin: yExent[0],
+            zMax: zExent[1],
+            zCen: (zExent[1] + zExent[0]) / 2,
+            zMin: zExent[0]
+        }
+
+        var colour = d3.scale.ordinal().range(["#FFFFFF"]);
+
+        var xScale = d3.scale.linear()
+            .domain(xExent)
+            .range([-50, 50]);
+        var yScale = d3.scale.linear()
+            .domain(yExent)
+            .range([-50, 50]);
+        var zScale = d3.scale.linear()
+            .domain(zExent)
+            .range([-50, 50]);
+
+
+        var mat = new THREE.ParticleBasicMaterial({
+            vertexColors: true,
+            size: 0.4
+        });
+
+        var color = 0xFFFFFF
+        var pointCount = data.unfiltered.length;
+        var pointGeo = new THREE.Geometry();
+        for (var i = 0; i < pointCount; i++) {
+            var x = xScale(data.unfiltered[i].x);
+            var y = yScale(data.unfiltered[i].y);
+            var z = zScale(data.unfiltered[i].z);
+            
+            pointGeo.vertices.push(new THREE.Vector3(x, y, z));
+            pointGeo.colors.push(new THREE.Color().setRGB(
+                hexToRgb(colour(i)).r / 255, hexToRgb(colour(i)).g / 255, hexToRgb(colour(i)).b / 255
+            ));
+            /*
+            pointGeo.colors.push(new THREE.Color().setHSV(
+          (x*0)/100, (z*0)/100, (y*0)+100)); */
+            
+        }
+
+
+
+        var points = new THREE.ParticleSystem(pointGeo, mat);
+        scatterPlot.add(points);
+
+        renderer.render(scene, camera);
+        var paused = false;
+        var last = new Date().getTime();
+        var down = false;
+        var sx = 0,
+            sy = 0;
+
+        window.onmousedown = function(ev) {
+            down = true;
+            sx = ev.clientX;
+            sy = ev.clientY;
+        };
+        window.onmouseup = function() {
+            down = false;
+        };
+        window.onmousemove = function(ev) {
+            if (down) {
+                var dx = ev.clientX - sx;
+                var dy = ev.clientY - sy;
+                var dist = Math.sqrt(sq(camera.position.x) + sq(camera.position.y) + sq(camera.position.z));
+
+                scatterPlot.rotation.y += dx * 0.01;
+                scatterPlot.rotation.x += dy * 0.01;
+
+                sx += dx;
+                sy += dy;
+            }
+        }
+        var animating = false;
+        window.ondblclick = function() {
+            animating = !animating;
+        };
+
+        function animate(t) {
+        if (!paused) {
+          last = t;
+          if (animating) {
+            var v = pointGeo.vertices;
+            for (var i=0; i<v.length; i++) {
+              var u = v[i];
+              u.angle += u.speed * 0.01;
+              u.position.x = Math.cos(u.angle)*u.radius;
+              u.position.z = Math.sin(u.angle)*u.radius;
+            }
+            pointGeo.__dirtyVertices = true;
+          }
+          renderer.clear();
+          camera.lookAt(scene.position);
+          renderer.render(scene, camera);
+        }
+        window.requestAnimationFrame(animate, renderer.domElement);
+      };
+        animate(new Date().getTime());
+        onmessage = function(ev) {
+            paused = (ev.data == 'pause');
+        };
+
+    }
+
+    </script>
+</body>
+
+</html>

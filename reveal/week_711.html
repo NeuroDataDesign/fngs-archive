@@ -115,7 +115,87 @@
 
         <!-- Divider -->
 
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
 
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Recovered some of my hearing</li>
+                <li>Read some papers on contrast correction and histogram equalization</li>
+                <li>Recreated original histogram equalization code</li>
+                <li>Made plan for upcoming week</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>What is histogram equalization</h1>
+            <ul>
+                <li>Contrast enhancement through image intensity adjustments</li>
+            </ul>
+            <h1>What is local histogram equalization</h1>
+            <ul>
+                <li>Contrast enhancement through spreading the most frequent intensities in an image</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Initial Attempts</h1>
+            <ul>
+                <li>Tried to recreate original "histogram equalization" code</li>
+                <li>Since I was unable to get scikit's code running I had used some other resource online</li>
+                <li>It turns out that this program was only able to conduct image spreading not image equalization</li>
+                <li>Image spreading is deceptive in that it is a form of histogram equalization, however randomly chooses intensities instead of the most frequent ones</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Debugging</h1>
+            <ul>
+                <li>Original reason why I didn't use Scikit's histogram equalization technique is that it's not easy to use</li>
+                <li>Kernel size and img_to_float function tends to cause problems in even basic images - though this is more likely my fundamental misunderstandings of image equalization than a problem with scikit's code</li>
+                <li>Biggest challenge is determining what the kernel size is for the Nifti images</li>
+                <li>Second biggest challenge is determining how to scale up Scikit's code (which is designed for 2D images) to a 3D image
+                <li>Decided to start from the basics and work my way up to the Clarity brain images</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Result</h1>
+            <ul>
+                <li>Complete failure</li>
+                <li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Extended Results</h1>
+            <ul>
+                <li>The main failure stems from a conversion error</li>
+                <li>I'm going to create an ipython notebook with explicit documentation and send it to Scikit - they might consider helping me</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>OpenCV</h1>
+            <ul>
+                <li>Something wrong with computer's python dependencies (malware?)</li>
+                <li>Despite reinstalling OSX, OpenCV will not build</li>
+                <li>Hopefully will save up some money so I can get my computer looked at</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Goals for Week</h1>
+            <ul>
+                <li>Make histogram equalization work</li>
+                <li>Have proof of concept</li>
+                <li>Scale to 3D</li>
+                <li>If things don't work learn simpleitk</li>
+            </ul>
+        </section>
 
     </div>
 </div>
