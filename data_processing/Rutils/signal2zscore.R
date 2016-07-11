@@ -25,9 +25,7 @@ signal2zscore <- function(signal_data) {
   subjects <- names(signal_data)
   
   for (subject in subjects) {
-    zscore_data[[subject]] <- list()
-      zscore_data[[subject]] <- t(scale(t(signal_data[[subject]]), center=TRUE, scale=TRUE))
-    }
+    zscore_data[[subject]] <- t(scale(t(signal_data[[subject]]), center=TRUE, scale=TRUE))
   }
   
   return(zscore_data)

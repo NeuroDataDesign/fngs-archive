@@ -11,6 +11,7 @@ setwd(dirn)
 ## Sources ------------------------
 
 source('open_timeseries.R')
+source('signal2zscore.R')
 require('ggplot2')
 require('reshape2')
 ## Loading Timeseries ----------------
@@ -18,3 +19,8 @@ gpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processi
 tsnames <- list.files(gpath, pattern="\\.rds", full.names=TRUE)
 
 tsobj <- open_timeseries(tsnames, scan_pos=2)
+
+ts <- tsobj[[1]]
+sub <- tsobj[[2]]
+
+cor <- signal2zscore(ts)
