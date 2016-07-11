@@ -29,7 +29,7 @@
 
 
     function createTextCanvas(text, color, font, size) {
-        size = size || 16;
+        size = size || 24;
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
         var fontStr = (size + 'px ') + (font || 'Arial');
@@ -59,7 +59,6 @@
         mesh.doubleSided = true;
         return mesh;
     }
-
 
     // from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 
@@ -136,21 +135,20 @@
     var renderer = new THREE.WebGLRenderer({
         antialias: true
     });
-    var w = 960;
-    var h = 500;
-
-    renderer.setSize(w, h);
-    document.getElementById("container").appendChild(renderer.domElement);
+      var w = document.body.clientWidth;
+      var h = document.body.clientHeight;
+      renderer.setSize(w, h);
+      document.body.appendChild(renderer.domElement);
 
     renderer.setClearColorHex(0xEEEEEE, 1.0);
-    //renderer.setClearColor(new THREE.Color(0, 1));
 
     var camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
     camera.position.z = 200;
-    camera.position.x = -100;
-    camera.position.y = 100;
+    camera.position.x = 0;
+    camera.position.y = 75;
 
     var scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2( 0xFFFFFF, 0.0035 );
 
     var scatterPlot = new THREE.Object3D();
     scene.add(scatterPlot);
@@ -200,6 +198,94 @@
             .domain(zExent)
             .range([-50, 50]);
 
+        var lineGeo = new THREE.Geometry();
+        lineGeo.vertices.push(
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMin)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax))
+
+        );
+        var lineMat = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            lineWidth: 1
+        });
+        var line = new THREE.Line(lineGeo, lineMat);
+        line.type = THREE.Lines;
+        scatterPlot.add(line);
+
+        var titleX = createText2D('-X');
+        titleX.position.x = xScale(vpts.xMin) - 12,
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[0]));
+        valueX.position.x = xScale(vpts.xMin) - 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleX = createText2D('X');
+        titleX.position.x = xScale(vpts.xMax) + 12;
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[1]));
+        valueX.position.x = xScale(vpts.xMax) + 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleY = createText2D('-Y');
+        titleY.position.y = yScale(vpts.yMin) - 5;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[0]));
+        valueY.position.y = yScale(vpts.yMin) - 15,
+        scatterPlot.add(valueY);
+
+        var titleY = createText2D('Y');
+        titleY.position.y = yScale(vpts.yMax) + 15;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[1]));
+        valueY.position.y = yScale(vpts.yMax) + 5,
+        scatterPlot.add(valueY);
+
+        var titleZ = createText2D('-Z ' + format(zExent[0]));
+        titleZ.position.z = zScale(vpts.zMin) + 2;
+        scatterPlot.add(titleZ);
+
+        var titleZ = createText2D('Z ' + format(zExent[1]));
+        titleZ.position.z = zScale(vpts.zMax) + 2;
+        scatterPlot.add(titleZ);
 
         var mat = new THREE.ParticleBasicMaterial({
             vertexColors: true,

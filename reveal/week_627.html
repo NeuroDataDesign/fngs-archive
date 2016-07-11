@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Design Team 0 6/27</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background="#000066">
+					<h1>Design Team 0 Slides</h1>
+					<h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h1>F2G pipeline leg overview</h1>
+					<h2>Eric Bridgeford</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h1>Week's Accomplishments</h1>
+					<ul>
+						<li>Debugged more QC stuff</li>
+						<li>incorporated CPAC QC metrics</li>
+						<li>Ran FNGS on lots of data (KKI)</li>
+						<li>discriminability results for dataset</li>
+						<li>Made plan for upcoming week</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Results</h2>
+					<ul>
+						<li>Correlation matrix: matrix showing the correlations of individual rois during a resting state fMRI session</li>
+						<li>Goal: have the matrix produced be very close to a matrix produced from a scan taken at a later time</li>
+						<li>Reality: HAH! Guess again.</li>
+						<li>Distance matrix: shows the euclidian distances for all possible pairs of subjects' correlation matrices</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Distance Matrix Logic</h2>
+					<ul>
+						<li>Align subjects by their subject ids, and place same subject but different scans next to each other</li>
+						<li>Intuitively, expect same subject but different scans to be closer</li>
+						<li>Want to see distance values lower across the diagonal</li>
+						<li>Given: scan to same scan distance should be a perfect match (d = 0)</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Correlation Matrix</h2>
+					<img src="images/week_627/correlationmtx.png" height="500">
+				</section>
+
+				<section data-background="#000066">
+					<h2>A (not so) typical Distance Matrix</h2>
+					<img src="images/week_627/distancemtx.png" height="500">
+				</section>
+
+				<section data-background="#000066">
+					<h2>How can we improve</h2>
+					<ul>
+						<li>Ranking</li>
+						<li>Theory: maybe the correlations aren't the same, but the ordering of connection weights is</li>
+						<li>Reality: This holds relatively true</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Density Estimates</h2>
+					<ul>
+						<li>Theory: want to have some way of visualizing intra subject vs inter subject graph distances</li>
+						<li>Solution: Take a kernel density estimate (KDE)</li>
+						<li>Gives us a continuous function to approximate the density at which graph distances appear in our dataset</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>KDE Plot</h2>
+					<img src="images/week_627/kde.png" height="400">
+				</section>
+
+				<section data-background="#000066">
+					<h2>What to do next</h2>
+					<ul>
+						<li>Try another dataset (NKI TR = 645 ms)</li>
+						<li>Figure out WTF is up with registration</li>
+						<li>Read papers on spatial smoothing and some other methods for quantifying/improving signal:noise ratio</li>
+						<li>Enjoy vacation!</li>
+					</ul>
+				</section>
+
+				<!-- Divider -->
+
+				<section data-background="#000066">
+          <h1>Javascript based visualization</h1>
+          <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Accomplished this week</h2>
+          <ul>
+            <li>Contacted cosmic web author - no response</li>
+            <li><a href = "images/week_627/javascriptviewer.png">Experimented with Javascript based nifti source analysis</a></li>
+            <li>Completed first two sections of the Udacity WebGL/ThreeJS course</li>
+            <li>Created basic prototype that is completely made with my code (and source code)
+            <li>Lots of debugging</li>
+            <li>Created some mock ups of what I want the final product to look like</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Javascript based Nifti analysis</h2>
+          <ul>
+            <li>With R and Python able to easily obtain data from Nifti</li>
+            <li>Unreasonable to expect people to have the Clarity API to parse their data into csvs</li>
+            <li>With new Javascript packages in development it is very possible to convert Clarity API into Javascript</li>
+            <li>Ran some initial tests and can load <a href = "images/week_627/nifti.png"> metadata</a>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Pros and Cons</h2>
+          <h5>Pros</h5>
+          <ul>
+            <li>Single stream process</li>
+            <li>No other dependencies needed (PyQT is terrible to install)</li>       
+          </ul>
+          <h5>Cons</h5>
+          <ul>
+            <li>Worried processing will take a long time</li>
+            <li>Return on investment might be low due to how many different formats there are for medical images</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Udacity Course</a></h2>
+          <ul>
+            <li><a href = "https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/reveal/Classwork"> I uploaded the exercises that I completed</a></li>
+            <li>Note that to run these exercises you need to either run a local Python host or open your browser to allow which is not recommended</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>My code</h2>
+          <ul>
+            <li>Uses WebGL</li>
+            <li>Code uses Highcharts API temporarily</li>
+            <li><a href = "ThreejsScatter/original_files/saved_resource.html">CSV integration does not work which has crashed it</a></li>
+            <li>Will continue debugging</li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h2>Debugging Accomplishments</h2>
+          <ul>
+            <li>Fixed Camera bug where it would not animate</li>
+            <li>Fixed Color bug where program would crash</li>
+            <li>Finally able to change background without ruining code</li>
+          </ul>
+        </section>
+       
+        <section data-background="#000066">
+          <h1>Next Week</h1>
+          <ul>
+            <li> Debug the csv issues I'm having </li>
+            <li> Make progress on the model Jovo likes the best </li>
+            <li> Slowly try to bridge gap between model and my own code </li>
+          </ul>
+        </section>
+
+        <section data-background="#000066">
+          <h1>Models I modified</h1>
+          <ul>
+          	<li><a href = "https://github.com/Upward-Spiral-Science/fngs/blob/gh-pages/claritybrain.csv">Use this csv</a></li>
+            <li><a href = "ThreejsScatter/originalbert.html">Model 1</a></li>
+            <li>https://gist.github.com/phil-pedruco/9852362</li>
+            <li><a href = "ThreejsScatter/originalbert2.html">Model 2</a></li>
+            <li>Original Webgl model</li>
+            <li><a href = "ThreejsScatter/originalbert3.html">Model 3</a></li>
+            <li>https://github.com/caseylang/Three.js-Experiments</a>
+          </ul>
+        </section>
+
+        <!--- Divider --> 
+
+				<section data-background="#000066">
+					<h1>fMRI Data Analysis</h1>
+					<h2>Eric Walker</h2>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Spatial normalization</h2>
+					<ul>
+						<li>Main goal to transform brain to reduce variability between subjects</li>
+						<li>Talairach atlas – uses landmark-based normalization, which has been rejected for automated registration to templates</li>
+						<li>MNI templates – most commonly used, based on mean of Talairach-normalized images</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Normalization preprocessing</h2>
+					<ul>
+						<li>Bias field correction adjusts variation in intensity across image – tissue segmentation approach outperforms global filtering approach</li>
+						<li>Brain extraction (skull-stripping) removes non-brain tissue from image (number of different algorithms with varying effectiveness across datasets)</li>
+						<li>Tissue segmentation separates gray matter, white matter, and CSF</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Processing stream</h2>
+					<ul>
+						<li>Poststatistics normalization (FSL) more economical in terms of disk space</li>
+						<li>fMRI -> coplanar (anatomical), coplanar -> high-res, high-res -> standard space</li>
+						<li>Better to concatenate process to make one single transformation to reduce error</li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Normalization Methods</h2>
+					<ul>
+						<li>Landmark-based – uses anatomical features</li>
+						<li>Volume-based (most common)</li>
+						<li>Computational anatomy – transform uses vector fields that respect anatomical constraints</li>
+						<li>Surface-based – extract cortical surface and register to a surface atlas (more accurate for cortical surface but cannot analyze deep brain features)</li>
+						<li>Nonlinear registration preferred over linear b/c it’s more accurate</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Normalization quality control</h2>
+					<ul>
+						<li>Examine normalized image with template overlaid, or average of normalized images to see if it looks like a blurry real brain, or movie of images</li>
+						<li>Use special methods for children, elderly, or brains with lesions</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Statistical modeling – single subject</h2>
+					<ul>
+						<li>How to create general linear model (GLM) predictor that will model BOLD signal as accurately as possible?</li>
+						<li>Mass univariate data analysis – models signal in a single voxel in the brain at a time</li>
+						<li>BOLD signal characteristics<ul>
+							<li>peak height, time to peak, width, initial dip (generally ignored), post-stimulus undershoot</li>
+							<li>Exhibits linear time invariant properties (scales, sums, and shifts)</li>
+						</ul></li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>BOLD signal</h2>
+					<ul>
+						<li>Create expected signal by convolving stimulus time series w/ hemodynamic response function (HRF)</li>
+						<li>Estimate HRF via average of evoked responses (canonical HRF – double-gamma)</li>
+						<li>Bias-variance tradeoff – incorporate more parameters in HRF for increased flexibility allowing more variability in the estimates<ul>
+							<li>HRF plus derivatives, finite impulse response model, constrained basis sets</li>
+						</ul></li>
+					</ul>
+				</section>
+
+				<section data-background="#000066">
+					<h2>Other modeling considerations</h2>
+					<ul>
+						<li>Time resolution, parametric modulation</li>
+						<li>Behavioral response time, motion parameters (nuisance regressors)</li>
+						<li>Orthogonalization (correlation between regressors)</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>BOLD noise</h2>
+					<ul>
+						<li>White noise (broadband) and structured/colored noise (such as physiological fluctuations at particular frequencies)</li>
+						<li>Low frequency drift (generally 0 to 0.015 Hz)</li>
+						<li>High-pass filtering followed by prewhitening to remove temporal correlation</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Statistical modeling – group analysis</h2>
+					<ul>
+						<li>Mixed effects model – include between-subject variance in addition to within-subject<ul>
+							<li>First level: model the data for each subject separately</li>
+							<li>Second level: estimate mean for each group and use two-sample t-test</li>
+						</ul></li>
+						<li>Mean centering (makes intercepts more useful)</li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Statistical inference</h2>
+					<ul>
+						<li>Voxel-level vs. cluster-level vs. set-level inference<ul>
+							<li>Voxel-level: examining whether statistic at each voxel exceeds a threshold u</li>
+							<li>Cluster-level: primary threshold uc is applied and groups of contiguous voxels above uc are defined as clusters; then the significance of each cluster is determined by comparing size (# of voxels) to critical cluster size threshold k</li>
+							<li>Set-level: number of clusters that are larger than an arbitrary cluster size</li>
+						</ul></li>
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>Multiple testing problem</h2>
+					<ul>
+						<li>Familywise error rate – chance of one or more false positives anywhere in the image<ul>
+							<li>Bonferroni correction, random field theory (topology of threshold images), Monte Carlo, permutation test (slow but recommended for accuracy)</li>
+						</ul></li>
+						<li>False discovery rate – average chance of each voxel to be a false positive</li>	
+					</ul>
+				</section>
+				
+				<section data-background="#000066">
+					<h2>More on statistical inference</h2>
+					<ul>
+						<li>Masking and conjunctions (similarities in effects)</li>
+						<li>Use regions of interests (ROIs) to reduce volume of brain searched for activations</li>
+						<li>Statistical power – area to the right of null distribution threshold under alternative distribution</li>
+					</ul>
+				</section>
+
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>

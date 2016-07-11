@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <script src="three.min.js"></script>
+    <script src="d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="css/demo.css" />
+    <link rel="stylesheet" type="text/css" href="css/component.css" />
+
+    <script>(function(e,t,n){var r=e.querySelectorAll("html")[0];r.className=r.className.replace(/(^|\s)no-js(\s|$)/,"$1js$2")})(document,window,0);</script>
+
+</head>
+
+<div class="container">
+
+            <div class="content">
+
+                <div class="box">
+                    <input type="file" name="file-1[]" id="uploader" class="inputfile inputfile-1" data-multiple-caption="{count} files selected" multiple />
+                    <label for="uploader"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17"><path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/></svg> <span>Choose a file&hellip;</span></label>
+                </div>
+
+<body>
+
+    <script>
+
+
+    function createTextCanvas(text, color, font, size) {
+        size = size || 16;
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        var fontStr = (size + 'px ') + (font || 'Arial');
+        ctx.font = fontStr;
+        var w = ctx.measureText(text).width;
+        var h = Math.ceil(size);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.font = fontStr;
+        ctx.fillStyle = color || 'black';
+        ctx.fillText(text, 0, Math.ceil(size * 0.8));
+        return canvas;
+    }
+
+    function createText2D(text, color, font, size, segW, segH) {
+        var canvas = createTextCanvas(text, color, font, size);
+        var plane = new THREE.PlaneGeometry(canvas.width, canvas.height, segW, segH);
+        var tex = new THREE.Texture(canvas);
+        tex.needsUpdate = true;
+        var planeMat = new THREE.MeshBasicMaterial({
+            map: tex,
+            color: 0xffffff,
+            transparent: true
+        });
+        var mesh = new THREE.Mesh(plane, planeMat);
+        mesh.scale.set(0.5, 0.5, 0.5);
+        mesh.doubleSided = true;
+        return mesh;
+    }
+
+    // from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+
+        'use strict';
+
+;( function ( document, window, index )
+{
+    var inputs = document.querySelectorAll( '.inputfile' );
+    Array.prototype.forEach.call( inputs, function( input )
+    {
+        var label    = input.nextElementSibling,
+            labelVal = label.innerHTML;
+
+        input.addEventListener( 'change', function( e )
+        {
+            var fileName = '';
+            if( this.files && this.files.length > 1 )
+                fileName = ( this.getAttribute( 'data-multiple-caption' ) || '' ).replace( '{count}', this.files.length );
+            else
+                fileName = e.target.value.split( '\\' ).pop();
+
+            if( fileName )
+                label.querySelector( 'span' ).innerHTML = fileName;
+            else
+                label.innerHTML = labelVal;
+        });
+
+        // Firefox bug fix
+        input.addEventListener( 'focus', function(){ input.classList.add( 'has-focus' ); });
+        input.addEventListener( 'blur', function(){ input.classList.remove( 'has-focus' ); });
+    });
+}( document, window, 0 ));
+
+    function hexToRgb(hex) { //TODO rewrite with vector output
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function sq(x) {
+        var s = Math.pow(x, 2);
+        return s;
+    }
+
+    function getPts(x) {
+        //console.log(x)
+        var unfiltered = [],
+            lowPass = [],
+            highPass = [];
+
+        x.forEach(function(d, i) {
+
+            var line = d.split(",");
+
+            unfiltered[i] = {
+                x: +line[0],
+                y: +line[1],
+                z: +line[2]
+            };
+            lowPass[i] = {
+                x: +line[4],
+                y: +line[5],
+                z: +line[6]
+            };
+            highPass[i] = {
+                x: +line[7],
+                y: +line[8],
+                z: +line[9]
+            };
+        })
+        var xyzData = {
+            unfiltered: unfiltered,
+            lowPass: lowPass,
+            highPass: highPass
+        }
+        return xyzData;
+    }
+
+    var uploader = document.getElementById("uploader");
+    var reader = new FileReader();
+    var data;
+
+    reader.onload = function(e) {
+        var contents = e.target.result;
+        var rawData = contents.split(/\n/);
+        var tempData = rawData.slice(2, rawData.length);
+        data = getPts(tempData);
+        scatter(data);
+
+        // remove button after loading file
+        uploader.parentNode.removeChild(uploader);
+    };
+
+    uploader.addEventListener("change", handleFiles, false);
+
+    function handleFiles() {
+        var file = this.files[0];
+        reader.readAsText(file);
+    };
+
+    var renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+    var w = 960;
+    var h = 500;
+
+    renderer.setSize(w, h);
+    document.getElementById("container").appendChild(renderer.domElement);
+
+    renderer.setClearColorHex(0xEEEEEE, 1.0);
+
+    var camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
+    camera.position.z = 200;
+    camera.position.x = -100;
+    camera.position.y = 100;
+
+    var scene = new THREE.Scene();
+
+    var scatterPlot = new THREE.Object3D();
+    scene.add(scatterPlot);
+
+    scatterPlot.rotation.y = 0;
+
+    function v(x, y, z) {
+        return new THREE.Vector3(x, y, z);
+    }
+
+    var format = d3.format("+.3f");
+
+    function scatter(data) {
+
+        var temp = data.unfiltered;
+        var xExent = d3.extent(temp, function(d) {
+                return d.x;
+            }),
+            yExent = d3.extent(data.unfiltered, function(d) {
+                return d.y;
+            }),
+            zExent = d3.extent(data.unfiltered, function(d) {
+                return d.z;
+            });
+
+        var vpts = {
+            xMax: xExent[1],
+            xCen: (xExent[1] + xExent[0]) / 2,
+            xMin: xExent[0],
+            yMax: yExent[1],
+            yCen: (yExent[1] + yExent[0]) / 2,
+            yMin: yExent[0],
+            zMax: zExent[1],
+            zCen: (zExent[1] + zExent[0]) / 2,
+            zMin: zExent[0]
+        }
+
+        var colour = d3.scale.category20c();
+
+        var xScale = d3.scale.linear()
+            .domain(xExent)
+            .range([-50, 50]);
+        var yScale = d3.scale.linear()
+            .domain(yExent)
+            .range([-50, 50]);
+        var zScale = d3.scale.linear()
+            .domain(zExent)
+            .range([-50, 50]);
+
+        var lineGeo = new THREE.Geometry();
+        lineGeo.vertices.push(
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMin)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax))
+
+        );
+        var lineMat = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            lineWidth: 1
+        });
+        var line = new THREE.Line(lineGeo, lineMat);
+        line.type = THREE.Lines;
+        scatterPlot.add(line);
+
+        var titleX = createText2D('-X');
+        titleX.position.x = xScale(vpts.xMin) - 12,
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[0]));
+        valueX.position.x = xScale(vpts.xMin) - 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleX = createText2D('X');
+        titleX.position.x = xScale(vpts.xMax) + 12;
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[1]));
+        valueX.position.x = xScale(vpts.xMax) + 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleY = createText2D('-Y');
+        titleY.position.y = yScale(vpts.yMin) - 5;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[0]));
+        valueY.position.y = yScale(vpts.yMin) - 15,
+        scatterPlot.add(valueY);
+
+        var titleY = createText2D('Y');
+        titleY.position.y = yScale(vpts.yMax) + 15;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[1]));
+        valueY.position.y = yScale(vpts.yMax) + 5,
+        scatterPlot.add(valueY);
+
+        var titleZ = createText2D('-Z ' + format(zExent[0]));
+        titleZ.position.z = zScale(vpts.zMin) + 2;
+        scatterPlot.add(titleZ);
+
+        var titleZ = createText2D('Z ' + format(zExent[1]));
+        titleZ.position.z = zScale(vpts.zMax) + 2;
+        scatterPlot.add(titleZ);
+
+        var mat = new THREE.ParticleBasicMaterial({
+            vertexColors: true,
+            size: 3
+        });
+
+        var pointCount = data.unfiltered.length;
+        var pointGeo = new THREE.Geometry();
+        for (var i = 0; i < pointCount; i++) {
+            var x = xScale(data.unfiltered[i].x);
+            var y = yScale(data.unfiltered[i].y);
+            var z = zScale(data.unfiltered[i].z);
+
+            pointGeo.vertices.push(new THREE.Vector3(x, y, z));
+
+        }
+        var points = new THREE.ParticleSystem(pointGeo, mat);
+        scatterPlot.add(points);
+
+        renderer.render(scene, camera);
+        var paused = false;
+        var last = new Date().getTime();
+        var down = false;
+        var sx = 0,
+            sy = 0;
+
+        window.onmousedown = function(ev) {
+            down = true;
+            sx = ev.clientX;
+            sy = ev.clientY;
+        };
+        window.onmouseup = function() {
+            down = false;
+        };
+        window.onmousemove = function(ev) {
+            if (down) {
+                var dx = ev.clientX - sx;
+                var dy = ev.clientY - sy;
+                var dist = Math.sqrt(sq(camera.position.x) + sq(camera.position.y) + sq(camera.position.z));
+
+                scatterPlot.rotation.y += dx * 0.01;
+                scatterPlot.rotation.x += dy * 0.01;
+
+                sx += dx;
+                sy += dy;
+            }
+        }
+        var animating = false;
+        window.ondblclick = function() {
+            animating = !animating;
+        };
+
+        function animate(t) {
+        if (!paused) {
+          last = t;
+          if (animating) {
+            var v = pointGeo.vertices;
+            for (var i=0; i<v.length; i++) {
+              var u = v[i];
+              u.angle += u.speed * 0.01;
+              u.position.x = Math.cos(u.angle)*u.radius;
+              u.position.z = Math.sin(u.angle)*u.radius;
+            }
+            pointGeo.__dirtyVertices = true;
+          }
+          renderer.clear();
+          camera.lookAt(scene.position);
+          renderer.render(scene, camera);
+        }
+        window.requestAnimationFrame(animate, renderer.domElement);
+      };
+        animate(new Date().getTime());
+        onmessage = function(ev) {
+            paused = (ev.data == 'pause');
+        };
+
+    }
+
+    </script>
+</body>
+
+</html>

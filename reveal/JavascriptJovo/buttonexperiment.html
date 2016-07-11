@@ -1,26 +1,85 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
     <script src="three.min.js"></script>
     <script src="d3.v3.min.js" charset="utf-8"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <style type="text/css">
-    body {
-        margin: 0px;
-        padding: 0px;
-    }
-    #container {
-        width:960px;
-        height:500px;
-    }
+    /* source: http://jsfiddle.net/rohitazadwincere/6c1ak9t4/6/ */
+*{
+    box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+}
+
+.inputBtnSection{
+    display:inline-block;
+    vertical-align:top;
+    font-size:0;
+    font-family:verdana;
+}
+.disableInputField{
+    display:inline-block;
+    vertical-align:top;
+    height: 27px;
+    margin: 0;
+    font-size:14px;
+    padding:0 3px;
+}
+
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    border:solid 1px gray;
+    display:inline-block;
+    vertical-align:top;
+}
+.uploadBtn{
+    display:inline-block;
+    vertical-align:top;
+    background:rgba(0,0,0,0.5);
+    font-size:14px;
+    padding:0 10px;
+    height:25px;
+    line-height:22px;
+    color:#fff;
+}
+
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}
     </style>
 
 </head>
+
+<!--
 <div id="wrapper">
     <p>
         <input id="uploader" name="uploader" type="file" />
     </p>
     <div id="container"></div>
 </div>
+-->
+
+<div class="inputBtnSection">
+
+<input id="uploadFile" class="disableInputField" placeholder="Choose File" disabled="disabled" />
+
+
+<label class="fileUpload">
+    <input id="uploadBtn" type="file" class="upload" />
+    <span class="uploadBtn"> Choose Brain </span>
+</label>
+    
+    </div>
 
 <body>
 
@@ -60,8 +119,11 @@
         return mesh;
     }
 
-
     // from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+
+    document.getElementById("uploadBtn").onchange = function () {
+        document.getElementById("uploadFile").value = this.value;
+    };
 
     function hexToRgb(hex) { //TODO rewrite with vector output
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -143,7 +205,6 @@
     document.getElementById("container").appendChild(renderer.domElement);
 
     renderer.setClearColorHex(0xEEEEEE, 1.0);
-    //renderer.setClearColor(new THREE.Color(0, 1));
 
     var camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
     camera.position.z = 200;
@@ -200,6 +261,94 @@
             .domain(zExent)
             .range([-50, 50]);
 
+        var lineGeo = new THREE.Geometry();
+        lineGeo.vertices.push(
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yCen), zScale(vpts.zMin)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zCen)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zCen)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zCen)),
+
+            v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yMin), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMax), zScale(vpts.zMax)),
+            v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yMin), zScale(vpts.zMax)),
+
+            v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMin), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMin)), v(xScale(vpts.xMax), yScale(vpts.yCen), zScale(vpts.zMax)),
+            v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMax), zScale(vpts.zMin)),
+            v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMin)), v(xScale(vpts.xCen), yScale(vpts.yMin), zScale(vpts.zMax))
+
+        );
+        var lineMat = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            lineWidth: 1
+        });
+        var line = new THREE.Line(lineGeo, lineMat);
+        line.type = THREE.Lines;
+        scatterPlot.add(line);
+
+        var titleX = createText2D('-X');
+        titleX.position.x = xScale(vpts.xMin) - 12,
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[0]));
+        valueX.position.x = xScale(vpts.xMin) - 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleX = createText2D('X');
+        titleX.position.x = xScale(vpts.xMax) + 12;
+        titleX.position.y = 5;
+        scatterPlot.add(titleX);
+
+        var valueX = createText2D(format(xExent[1]));
+        valueX.position.x = xScale(vpts.xMax) + 12,
+        valueX.position.y = -5;
+        scatterPlot.add(valueX);
+
+        var titleY = createText2D('-Y');
+        titleY.position.y = yScale(vpts.yMin) - 5;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[0]));
+        valueY.position.y = yScale(vpts.yMin) - 15,
+        scatterPlot.add(valueY);
+
+        var titleY = createText2D('Y');
+        titleY.position.y = yScale(vpts.yMax) + 15;
+        scatterPlot.add(titleY);
+
+        var valueY = createText2D(format(yExent[1]));
+        valueY.position.y = yScale(vpts.yMax) + 5,
+        scatterPlot.add(valueY);
+
+        var titleZ = createText2D('-Z ' + format(zExent[0]));
+        titleZ.position.z = zScale(vpts.zMin) + 2;
+        scatterPlot.add(titleZ);
+
+        var titleZ = createText2D('Z ' + format(zExent[1]));
+        titleZ.position.z = zScale(vpts.zMax) + 2;
+        scatterPlot.add(titleZ);
 
         var mat = new THREE.ParticleBasicMaterial({
             vertexColors: true,
