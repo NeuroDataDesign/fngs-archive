@@ -31,8 +31,8 @@ tsobj <- open_timeseries(tsnames, scan_pos=2)
 ts <- tsobj[[1]]
 sub <- tsobj[[2]]
 
-zsc <- signal2zscore(ts)
-corr <- obs2corr(zsc)
+#zsc <- signal2zscore(ts)
+corr <- obs2corr(ts)
 
 ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
 nroi <- dim(corr[["1"]])[1]
