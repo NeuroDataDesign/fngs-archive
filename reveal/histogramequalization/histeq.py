@@ -95,6 +95,7 @@ def plot_2D_boundary(plot_range,points,decisionfcn,labels,values=[0]):
 im = array(Image.open('black-and-white-tips.jpg'))
 im2,cdf = histeq(im)
 
-##plt.plot(im2)
-plt.plot(cdf)
+plt.plot(im2)
+##plt.plot(cdf)
+##plt.savefig('black-and-white-tips2img.jpg')
 plt.show()
