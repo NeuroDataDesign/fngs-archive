@@ -177,7 +177,73 @@
                 <li><a href = "histogramequalization/Fear199eq.png">New</a>></li>
                 <li><a href = "histogramequalization/Fear199eqhist.png">New histogram</a>></li>
                 <li>Stepwise cdf and spread histogram bin counts imply histogram equalization was successful</li>
+            </ul>
+        </section>
 
+        <section data-background="#000066">
+            <h1>Attempt at proving histogram equalization works</h1>
+            <pre><code class="hljs">Original subimage:
+
+  52  55  61  66  70  61  64  73
+  63  59  55  90 109  85  69  72
+  62  59  68 113 144 104  66  73
+  63  58  71 122 154 106  70  69
+  67  61  68 104 126  88  68  70
+  79  65  60  70  77  68  58  75
+  85  71  64  59  55  61  65  83
+  87  79  69  68  65  76  78  94
+
+  Equalized subimage:
+
+   0  12  52  93 145  52  72 165
+  64  32  12 214 234 202 129 157
+  56  32 117 238 250 226  93 165
+  64  20 153 242 255 230 145 129
+  97  52 117 226 246 210 117 145
+ 190  85  36 145 178 117  20 170
+ 202 153  72  32  12  52  85 194
+ 206 190 129 117  85 174 182 218</code></pre>
+            <ul>
+                <li>Arrays generated from <a href= https://en.wikipedia.org/wiki/File:JPEG_example_subimage_-_equalized.svg>Wikipedia</a></li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Original image vs Wikipedia's equalized image</h1>
+            <img src="checkequations/wikipediaexample.png" height="275">
+            <img src="checkequations/wikipediasolution.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Original image vs Wikipedia's equalized image</h1>
+            <img src="checkequations/originalhistogram.png" height="275">
+            <img src="checkequations/solutionhistogram.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Wikipedia's equalized image vs My version</h1>
+            <img src="checkequations/wikipediasolution.png" height="275">
+            <img src="checkequations/mysolution.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Wikipedia's equalized histogram vs My version</h1>
+            <img src="checkequations/solutionhistogram.png" height="275">
+            <img src="checkequations/mysolutionhistogram.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Conclusion</h1>
+            <ul>
+                <li>Error in the 0 pixel range - unnecessary shift</li>
+                <li>Other values match up nicely</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Sample Webpage Example for Clarity</h1>
+            <ul>
+                <li><a href = "images/week_725/clarityexample.html">Click</a>></li>
             </ul>
         </section>
 
