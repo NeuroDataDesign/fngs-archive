@@ -41,81 +41,64 @@
         <section data-background="#000066">
             <h1>Week's Accomplishments</h1>
             <ul>
-                <li>Had a dope vacation</li>
-                <li>read some papers</li>
-                <li>Ran FNGS on lots of data and made adjustments (NKI)</li>
-                <li>discriminability results for dataset</li>
-                <li>Made plan for upcoming week</li>
-                <li>started data for Da (1800 scans at 1mm res)</li>
-                <li>Added qc for downsampling</li>
-            </ul>
+                <li>FNIRT works great</li>
+                <li>Ran FNGS on same data as before, making adjustments along the way</li>
+                <li>Made FNGS work as a package</li>
+                <li>Compared HCP qc metrics of CPAC vs us for 1 subject</li>
         </section>
 
         <section data-background="#000066">
-            <h1>Registration Issues</h1>
+            <h1>Registration Solved (More or less)</h1>
             <ul>
-                <li>Noticed that registration worked well for some subjects and poorly for others</li>
-                <li>Noticed that entire datasets could be impacted by poor registration (NKI)</li>
-                <li>No online support :(</li>
+                <li>Figured out how to make FNIRT work well</li>
+                <li>Registered anatomical brain near perfect match to MNI image</li>
+                <li>accordingly, fMRI can also match much better to MNI than before</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Initial Attempts</h1>
+            <h1>FLIRT registered brain</h1>
+            <img src="images/week_725/flirt.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>FLIRT registered brain</h1>
+            <img src="images/week_725/temp.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>FLIRT registered brain</h1>
+            <img src="images/week_725/fnirt.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Discriminability on BNU1</h1>
+            <img src="images/week_725/bnu1mnr.png" height="400">
             <ul>
-                <li>tried to copy other peoples' registration methods</li>
-                <li>found that most failed in some way that made them poorly generalizable to other datasets</li>
-                <li>tried nonlinear registration (FNIRT) which performed poorly (more on this later)</li>
+                <li>Note: CPAC gives us MNR = ~.83</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Registration Solution</h1>
+            <h1>Discriminability on NKI</h1>
+            <img src="images/week_725/nkimnr.png" height="400">
             <ul>
-                <li>Looked at differences between KKI scans and NKI scans</li>
-                <li>See that skull was the critical difference (very visible on KKI, not very on NKI)</li>
-                <li>Tried different combinations of skull stripping, and settled on...</li>
-                <li>align be'd s0 to be'd mprage, be'd mprage to template brain, then skull-on fmri stack to template</li>
+                <li>Note: CPAC gives us MNR = ~.9</li>
             </ul>
         </section>
 
-        <section data-background="#000066">
-            <h1>Why this works</h1>
+        <section data-background="#0000666">
+            <h1>Things to do this week</h1>
             <ul>
-                <li>Our registration is "optimized" for the brain tissues</li>
-                <li>Doesn't get confused by skulls, which can look poor on fMRI</li>
-                <li>Limitations: skullstripping isn't the most robust procedure</li>
+                <li>Add linear and quadratic drift removal from timeseries</li>
+                <li>See if distortion correction is worthwhile</li>
+                <li>Edges for QC plots instead of transparent overlays</li>
+                <li>Respec HCP data for Da</li>
+                <li>Work on getting a pull request in soon to ndmg (next 2 weeks?)</li>
+                <li>Think about one click DTI/fMRI (maybe end of summer?)</li>
             </ul>
         </section>
 
-        <section data-background="#000066">
-            <h1>Example that failed previously</h1>
-            <img src="images/week_711/reg_fail.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>...And after correction</h1>
-            <img src="images/week_711/reg_better.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>New Results</h1>
-            <img src="images/week_711/mnr.png" height="400">
-            <ul>
-                <li>MNR example scripts here: https://github.com/Upward-Spiral-Science/fngs/blob/master/data_processing/Rutils/check_mnr.R</li>
-            </ul>
-        </section>
-
-        <section data-background="#000066">
-            <h1>Goals for Week</h1>
-            <ul>
-                <li>Finish running Da's stuff</li>
-                <li>Figure out FNIRT</li>
-                <li>Add spatial smoothing module and see how it impacts mnr</li>
-                <li>Add code for increasing interchangeability of atlases/templates/etc and run on more labelled atlases</li>
-            </ul>
-        </section>
-        
         <section data-background="#000066">
             <h1>Autoregression on Timeseries</h1>
             <h2>Eric Walker</h2>

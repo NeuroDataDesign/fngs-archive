@@ -16,23 +16,26 @@ source('obs2corr.R')
 require('ggplot2')
 require('reshape2')
 require('Rmisc')
+require('dlm')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
-
+source('obs2kf.R')
 ## Loading Timeseries --------------------------------------------------------------------------------
-gpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/fngs_v1/rds_files/'
+gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_714_v1/BNU_1/'
 tsnames <- list.files(gpath, pattern="\\.rds", full.names=TRUE)
 
-tsobj <- open_timeseries(tsnames, scan_pos=2)
+tsobj <- open_timeseries(tsnames, scan_pos=3)
 
 ts <- tsobj[[1]]
 sub <- tsobj[[2]]
 
 #zsc <- signal2zscore(ts)
+#kf <- obs2kf(ts)
 corr <- obs2corr(ts)
+
 
 ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
 nroi <- dim(corr[["1"]])[1]

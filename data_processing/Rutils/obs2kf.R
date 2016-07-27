@@ -17,16 +17,20 @@
 # Email: ebridge2@jhu.edu
 # Copyright (c) 2016. All rights reserved.
 #
-# a utility to convert timeseries to correlation matrices. 
+# a utility to kalman filter a set of timeseries.
 #
 #
-obs2corr <- function(observations) {
-  corr_data <- list()
+obs2kf <- function(observations) {
+  require('dlm')
+  kf_data <- list()
   subjects <- names(observations)
   
+  dlm = dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)
+  
   for (subject in subjects) {
-    corr_data[[subject]] <- abs(cor(t(observations[[subject]])))
+    flt <- dlmFilter(observations[[subject]], dlm)$m
+    kf_data[[subject]] <- array(flt[2:length(flt)], dim=dim(observations[[subject]]))
   }
   
-  return(corr_data)
+  return(kf_data)
 }
