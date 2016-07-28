@@ -24,10 +24,10 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
 source('obs2kf.R')
 ## Loading Timeseries --------------------------------------------------------------------------------
-gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_714_v1/BNU_1/'
+gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_714_v1/NKI/'
 tsnames <- list.files(gpath, pattern="\\.rds", full.names=TRUE)
 
-tsobj <- open_timeseries(tsnames, scan_pos=3)
+tsobj <- open_timeseries(tsnames, scan_pos=2)
 
 ts <- tsobj[[1]]
 sub <- tsobj[[2]]
@@ -59,14 +59,19 @@ ranked_graphs <- rank_matrices(wgraphs)
 Drank <- distance(ranked_graphs)
 mnrrank <- mnr(rdf(Drank, sub))
 
-if (mnrthresh > mnrrank) {
-  maxmnr <- mnrthresh
-  Dmax <- Dthresh
-  winner <- 'thresh'
-} else {
-  maxmnr <- mnrrank
+Draw <- distance(wgraphs)
+mnrraw <- mnr(rdf(Draw, sub))
+maxmnr <- max(c(mnrraw, mnrrank, mnrthresh))
+
+if (isTRUE(all.equal(maxmnr, mnrraw))) {
+  Dmax <- Draw
+  winner <- 'raw'
+} else if (isTRUE(all.equal(maxmnr, mnrrank))) {
   Dmax <- Drank
   winner <- 'rank'
+} else {
+  Dmax <- Dthresh
+  winner <- 'thresh'
 }
 
 ## Produce Plots for MNR --------------------------------------------------------
