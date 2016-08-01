@@ -23,18 +23,22 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.R')
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
 source('obs2kf.R')
+
+dataset <- 'NKI'
+outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_81/'
+opts <- 'kf'
 ## Loading Timeseries --------------------------------------------------------------------------------
-gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/for_foo/HNU_1/'
+gpath <- paste('C:/Users/ebrid/Documents/R/FNGS_results/for_foo/', dataset, '/', sep="")
 tsnames <- list.files(gpath, pattern="\\.rds", full.names=TRUE)
 
-tsobj <- open_timeseries(tsnames, scan_pos=3)
+tsobj <- open_timeseries(tsnames, scan_pos=2)
 
 ts <- tsobj[[1]]
 sub <- tsobj[[2]]
 
 zsc <- signal2zscore(ts)
-#kf <- obs2kf(ts)
-corr <- obs2corr(ts)
+kf <- obs2kf(ts)
+corr <- obs2corr(kf)
 
 
 ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
@@ -91,4 +95,6 @@ distance_plot <- ggplot(melt(Dmax), aes(x=Var1, y=Var2, fill=value)) +
 kde_plot <- ggplot()+geom_ribbon(data=meltkde, aes(x=`Graph Distance`, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
   ggtitle("Intra and Inter Subject Relationships") + theme(text=element_text(size=20))
 
+png(paste(outpath, dataset, "_", opts, ".png", sep=""), height=600, width = 1200)
 multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+dev.off()
