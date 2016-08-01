@@ -24,15 +24,15 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
 source('obs2kf.R')
 ## Loading Timeseries --------------------------------------------------------------------------------
-gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_714_v1/NKI/'
+gpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/for_foo/HNU_1/'
 tsnames <- list.files(gpath, pattern="\\.rds", full.names=TRUE)
 
-tsobj <- open_timeseries(tsnames, scan_pos=2)
+tsobj <- open_timeseries(tsnames, scan_pos=3)
 
 ts <- tsobj[[1]]
 sub <- tsobj[[2]]
 
-#zsc <- signal2zscore(ts)
+zsc <- signal2zscore(ts)
 #kf <- obs2kf(ts)
 corr <- obs2corr(ts)
 

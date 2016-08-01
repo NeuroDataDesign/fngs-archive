@@ -25,7 +25,7 @@ obs2corr <- function(observations) {
   subjects <- names(observations)
   
   for (subject in subjects) {
-    corr_data[[subject]] <- abs(cor(t(observations[[subject]])))
+    corr_data[[subject]] <- abs(cor(observations[[subject]]))
   }
   
   return(corr_data)

@@ -37,7 +37,7 @@ open_timeseries <- function(fnames, scan_pos=2) {
     base_split <- strsplit(basename, "_") # parse out the subject, which will be after the study name
     subjects[i] <- unlist(base_split)[scan_pos] # subject name must be a string, so do not convert to numeric
     tts[is.nan(tts)] <- 0
-    ts[[paste(i)]] <-tts
+    ts[[paste(i)]] <-t(tts)
   }
   pack <- list(ts, subjects)# pack up the subject ids and the graphs
   return(pack)
