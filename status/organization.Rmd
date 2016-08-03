@@ -49,7 +49,7 @@ An array which tracks the subject ids of the above timeseries. The elements are 
 A list or an array (depends on code versions; old code uses arrays, new code uses lists) that performs similarly to the timeseries (and is stored similarly) that holds graphs ONLY. The array dimensions must be equivalent for a brain graph. All old code will use arrays, while new code will use lists (allows the flexibility of the plyr package). To convert between arrays and lists stored with this format, we might do the following:
 
 ```{r }
-graph_ra <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+graph_ra <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans)) # preallocate
 counter <- 1
 for (subject in names(graphs_list)) {
   graphs_ra[,,counter] <- graphs_list[[subject]]
