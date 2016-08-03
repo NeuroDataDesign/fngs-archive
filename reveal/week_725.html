@@ -1,0 +1,345 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FNGS 7/25</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background="#000066">
+            <h1>Design Team 0 Slides</h1>
+            <h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNGS pipeline leg overview</h1>
+            <h2>Eric Bridgeford</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>FNIRT works great</li>
+                <li>Ran FNGS on same data as before, making adjustments along the way</li>
+                <li>Made FNGS work as a package</li>
+                <li>Compared HCP qc metrics of CPAC vs us for 1 subject</li>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Registration Solved (More or less)</h1>
+            <ul>
+                <li>Figured out how to make FNIRT work well</li>
+                <li>Registered anatomical brain near perfect match to MNI image</li>
+                <li>accordingly, fMRI can also match much better to MNI than before</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FLIRT registered brain</h1>
+            <img src="images/week_725/flirt.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Template brain</h1>
+            <img src="images/week_725/temp.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNIRT registered brain</h1>
+            <img src="images/week_725/fnirt.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Discriminability on BNU1</h1>
+            <img src="images/week_725/bnu1mnr.png" height="300">
+            <ul>
+                <li>Note: CPAC gives us MNR = ~.83</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Discriminability on NKI</h1>
+            <img src="images/week_725/nkimnr.png" height="300">
+            <ul>
+                <li>Note: CPAC gives us MNR = ~.9</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Things to do this week</h1>
+            <ul>
+                <li>Add linear and quadratic drift removal from timeseries</li>
+                <li>Decide style for R code</li>
+                <li>See if distortion correction is worthwhile</li>
+                <li>Use Greg's QC code for graphs</li>
+                <li>Edges for QC plots instead of transparent overlays</li>
+                <li>Respec HCP data for Da</li>
+                <li>Work on getting a pull request in soon to ndmg (next 2 weeks?)</li>
+                <li>Think about one click DTI/fMRI (maybe end of summer?)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Autoregression on Timeseries</h1>
+            <h2>Eric Walker</h2>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Autoregression</h1>
+            <ul>
+                <li><a href="https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/data_processing/fngs_v1/rds_files">Dataset</a></li>
+                <li>Examined effects of several transformations on autoregression</li>
+                <li><a href="https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/data_processing/Rutils/ewok">My code</a></li>
+            </ul>
+        </section>
+        
+         <section data-background="#000066">
+            <h1>AR Matrices</h1>
+            <a href = "../ewok_weekly/AR(0).csv">AR(0) csv</a> <br/>
+            <a href = "../ewok_weekly/AR(1).csv">AR(1) csv</a> <br/>
+            <a href = "../ewok_weekly/AR(2).csv">AR(2) csv</a>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0)</h1>
+            <img src="images/week_725/AR(0).jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) rank transformed</h1>
+            <img src="images/week_725/AR(0)_rank.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) thresholded</h1>
+            <img src="images/week_725/AR(0)_sparse.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) low rank</h1>
+            <img src="images/week_725/AR(0)_low.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) kalman filtered</h1>
+            <img src="images/week_725/AR(0)_kf.jpeg" height="400">
+        </section>
+
+	<section data-background="#000066">
+            <h1>AR(1)</h1>
+            <img src="images/week_725/AR(1).jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) rank transformed</h1>
+            <img src="images/week_725/AR(1)_rank.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) thresholded</h1>
+            <img src="images/week_725/AR(1)_sparse.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) low rank</h1>
+            <img src="images/week_725/AR(1)_low.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) kalman filtered</h1>
+            <img src="images/week_725/AR(1)_kf.jpeg" height="400">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(2)</h1>
+            <img src="images/week_725/AR(2).jpeg" height="450">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(2) rank transformed</h1>
+            <img src="images/week_725/AR(2)_rank.jpeg" height="450">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(2) thresholded</h1>
+            <img src="images/week_725/AR(2)_sparse.jpeg" height="450">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(2) low rank</h1>
+            <img src="images/week_725/AR(2)_low.jpeg" height="450">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(2) kalman filtered</h1>
+            <img src="images/week_725/AR(2)_kf.jpeg" height="450">
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(3)</h1>
+            <img src="images/week_725/AR(3).jpeg" height="475">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Prediction Accuracy</h1>
+            <ul>
+                <li>Trained AR model on first 850 points</li>
+                <li>Predicted next 49 and compared</li>
+            </ul>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Prediction Accuracy</h1> 
+            <video width="700" height="500" controls>
+  		<source src="images/week_725/pred/AR_prog.mp4" type="video/mp4">
+	    </video>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Prediction Accuracy Individual Images</h1> 
+            <a href = "https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/reveal/images/week_725/pred">AR(0) - AR(12) Prediction Accuracy</a>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR model accuracy</h1> 
+            <img src="images/week_725/AR_accuracy.jpeg" height="475">
+        </section>
+        
+        
+
+        <!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Sample Webpage Example for Clarity</h1>
+            <ul>
+                <li><a href = "images/week_725/clarityexample.html">Click</a>></li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Fear199 histogram equalization demonstration</h1>
+            <ul>
+                <li><a href = "histogramequalization/Fear199.png">Original</a>></li>
+                <li><a href = "histogramequalization/Fear199hist.png">Original histogram</a>></li>
+                <li><a href = "histogramequalization/Fear199eq.png">New</a>></li>
+                <li><a href = "histogramequalization/Fear199eqhist.png">New histogram</a>></li>
+                <li>Stepwise cdf and spread histogram bin counts imply histogram equalization was successful</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Attempt at proving histogram equalization works</h1>
+            <pre><code class="hljs">Original subimage:
+
+  52  55  61  66  70  61  64  73
+  63  59  55  90 109  85  69  72
+  62  59  68 113 144 104  66  73
+  63  58  71 122 154 106  70  69
+  67  61  68 104 126  88  68  70
+  79  65  60  70  77  68  58  75
+  85  71  64  59  55  61  65  83
+  87  79  69  68  65  76  78  94
+
+  Equalized subimage:
+
+   0  12  52  93 145  52  72 165
+  64  32  12 214 234 202 129 157
+  56  32 117 238 250 226  93 165
+  64  20 153 242 255 230 145 129
+  97  52 117 226 246 210 117 145
+ 190  85  36 145 178 117  20 170
+ 202 153  72  32  12  52  85 194
+ 206 190 129 117  85 174 182 218</code></pre>
+            <ul>
+                <li>Arrays generated from <a href= https://en.wikipedia.org/wiki/File:JPEG_example_subimage_-_equalized.svg>Wikipedia</a></li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Original image vs Wikipedia's equalized image</h2>
+            <img src="checkequations/wikipediaexample.png" height="275">
+            <img src="checkequations/wikipediasolution.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h2>Original image vs Wikipedia's equalized image</h2>
+            <img src="checkequations/originalhistogram.png" height="275">
+            <img src="checkequations/solutionhistogram.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h2>Wikipedia's equalized image vs My version</h2>
+            <img src="checkequations/wikipediasolution.png" height="275">
+            <img src="checkequations/mysolution.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h2>Wikipedia's equalized histogram vs My version</h2>
+            <img src="checkequations/solutionhistogram.png" height="275">
+            <img src="checkequations/mysolutionhistogram.png" height="275">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Conclusion</h1>
+            <ul>
+                <li>Error in the 0 pixel range - unnecessary shift</li>
+                <li>Other values match up nicely</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Sample Webpage Example for Clarity</h1>
+            <ul>
+                <li><a href = "images/week_725/clarityexample.html">Click</a>></li>
+            </ul>
+        </section>
+
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+</body>
+</html>

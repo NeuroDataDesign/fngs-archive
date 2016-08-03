@@ -1,0 +1,82 @@
+---
+title: "R Style Guide Tutorial"
+author: "Eric Bridgeford"
+date: "August 3, 2016"
+---
+
+## Purpose
+
+The purpose of having a style guide, and code tutorial, is to keep code looking as similar as possible between users. This will maximize usability of all code, and will ensure that there is never a need to duplicate code from one user to another. 
+
+## Basic Data Organization
+
+The following objects should be present for all fMRI analyses:
+
+```{r }
+# timeseries
+# subject_ids 
+# run_ids
+# graphs
+```
+
+### Timeseries: list[[subject]][ntimesteps x nrois]
+
+The timeseries object keeps track of all of the timeseries data. The object is a list of arrays, where the arrays are of dimensions [ntimesteps x nrois]. This data structure is chosen for this application, as we might have different numbers of timesteps in a particular dataset, and still want to maintain objects in the same place. For example, the NKI dataset has most points with 899 timesteps, but some have 900 timesteps. Conventional array usage would require two data structures, or removing a timestep from some of the subjects. The code to build such a structure might look something like the following:
+
+```{r }
+ts <- list()
+ts_names <- as.character(1:5)
+ts <- vector("list", length(ts_names)) # preallocate for speed
+names(ts) <- ts_names # replace the names with actual values (so we can access easily)
+ts <- lapply(ts, function(x) array(rep(NaN, 2*5), dim=c(2,5))) # initialize an array of NaNs
+```
+
+which can be accessed as the following:
+
+```{r }
+ts[["1"]] # way 1
+ts$`2` # way 2
+```
+
+both of which are equivalent.
+
+### Subjects: array[numsubs]
+
+An array which tracks the subject ids of the above timeseries. The elements are to be exactly analogous to the above, such that the timeseries in ts[["1"]] has the subject id in subject_ids[1].Runs is used similarly, such that run_ids[1] corresponds to the run number of the timeseries stored in ts[["1"]].
+
+### Graphs: list[[subject]][nrois x nrois] or array[nrois, nrois, nsubjects]
+
+A list or an array (depends on code versions; old code uses arrays, new code uses lists) that performs similarly to the timeseries (and is stored similarly) that holds graphs ONLY. The array dimensions must be equivalent for a brain graph. All old code will use arrays, while new code will use lists (allows the flexibility of the plyr package). To convert between arrays and lists stored with this format, we might do the following:
+
+```{r }
+graph_ra <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+counter <- 1
+for (subject in names(graphs_list)) {
+  graphs_ra[,,counter] <- graphs_list[[subject]]
+  counter <- counter + 1
+}
+```
+
+## Code Organization
+
+Code should be written following a consistent methodology. Here, we will look line by line at how a simple script might work, using the general formatting you should try to make your code look like. 
+
+```{r }
+obs2corr <- function(observations) {
+
+  corr_data <- sapply(names(corr_data),  function(x) abs(cor(observations[[x]])), simplify=FALSE, USE.NAMES=TRUE)
+  
+  # alternatively, using for loops
+  # corr_data <- vector("list", length(observations))
+  # names(corr_data) <- names(observations)
+  # for (subject in names(corr_data)) {
+  #   corr_data[[subject]] <- abs(cor(observations[[subject]]))
+  # }
+
+  return(corr_data)
+}
+```
+
+Here, we use the sapply function. If a function is going to be something simple (ie, just taking the absolute correlation of each timeseries, a simple one line operation) the apply functions in R are vastly superior in terms of execution time (for this simple function and a basic dataset, for example, using sapply over a for loop provides a .04 second execution bump, which essentially halves the execution time compared to a for loop). When writing big functions or when starting out, however, it will make sense to use for loops for their simplicity. 
+
+NOTE: All for loops should follow the structure outlined above, where accessing is ALWAYS done by usings names(vara). ALL FUNCTIONS should be ONLY used with variable names; there should NEVER be integers in code unless it is absolutely necessary. This is poor coding practice, and simply makes any function a user might write worthless as hardcoding prevents the function from being used to a wider audience. If a user is trying to run your code, it may be difficult or impossible to figure out what random integers scattered throughout the code actually correspond to. Variable names should always be specific, and tell you what the variables actually hold. If for some reason an integer/float must be used, the user should specify in a comment exactly what the integer/float is there for. 
