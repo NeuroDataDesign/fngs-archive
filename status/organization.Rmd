@@ -64,7 +64,7 @@ Code should be written following a consistent methodology. Here, we will look li
 ```{r }
 obs2corr <- function(observations) {
 
-  corr_data <- sapply(names(corr_data),  function(x) abs(cor(observations[[x]])), simplify=FALSE, USE.NAMES=TRUE)
+  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])), simplify=FALSE, USE.NAMES=TRUE)
   
   # alternatively, using for loops
   # corr_data <- vector("list", length(observations))
