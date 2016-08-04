@@ -129,3 +129,77 @@ Success for our group will be a published web tool that is functional and effect
 ##### After 10 years, what does moderate success look like? What about huge success?
 
 Moderate success would be significant usage from the scientific and industrial community. Huge success would be enough interest and need to create an fmri imaging company with the technology. 
+
+#### QC Pages
+
+For each scan, a full suite quality control pipeline will be available. 
+
+A preliminary summary of the results might look as follows:
+
+##### raw exploration
+
+The availability of users to scroll through the raw data, obtain voxelwise signal intensities, and play the timeseries as a movie. Also, users will be able to download data from here.
+
+<img src="../reveal/images/week_619/raw.png" width="400" />
+
+##### Processed exploration
+
+The availability of processed files (graphs, aligned mri scans, preprocessed only mri scans, etc) in a viewable and downloadable format.
+
+<img src="../reveal/images/week_619/processed.png" width="400" />
+
+<img src="../reveal/images/week_619/graphs.png" width="400" />
+
+##### QC-Signal statistics
+
+The availability of some summarizing signal images, as well as relevant statistics.
+
+<img src="../reveal/images/week_619/qc-smean.png" width="400" />
+
+An image showing the voxel wise mean signal intensity over time.
+
+<img src="../reveal/images/week_619/qc-sstd.png" width="400" />
+
+An image showing the voxel wise standard deviation of signal intensity. 
+
+<img src="../reveal/images/week_619/qc-ssnr.png" width="400" />
+
+An image showing the voxel wise Signal to Noise (SNR) ratio.
+
+<img src="../reveal/images/week_619/qc-sstat.png" width="400" />
+
+An image showing some summarizing statistics for the dataset. 
+
+##### QC- Motion
+
+TODO EB: include minimum. 
+
+The availability of useful summarizing signal images, as well as relevant statistics.
+
+<img src="../reveal/images/week_619/qc-transdisp.png" width="400" />
+
+A file showing the translational displacements, both absolute and relative, over time.
+
+<img src="../reveal/images/week_619/qc-transparam.png" width="400" />
+
+A file summarizing the translational motion parameters over time. 
+
+<img src="../reveal/images/week_619/qc-absstat.png" width="400" />
+
+Statistics for absolute translational motion.
+
+<img src="../reveal/images/week_619/qc-relstat.png" width="400" />
+
+Statistics for relative translational motion.
+
+<img src="../reveal/images/week_619/qc-rotparam.png" width="400" />
+
+A file summarizing the rotational motion parameters over time. 
+
+<img src="../reveal/images/week_619/qc-rotabs.png" width="400" />
+
+Statistics for absolute rotational motion.
+
+<img src="../reveal/images/week_619/qc-rotrel.png" width="400" />
+
+Statistics for relative rotational motion.
