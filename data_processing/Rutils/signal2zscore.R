@@ -21,12 +21,14 @@
 #
 #
 signal2zscore <- function(signal_data) {
-  zscore_data <- list()
-  subjects <- names(signal_data)
+
+  zscore_data <- sapply(names(observations),  function(x) scale(signal_data[[x]], center=TRUE, scale=TRUE),
+                        simplify=FALSE, USE.NAMES=TRUE)
   
-  for (subject in subjects) {
-    zscore_data[[subject]] <- t(scale(t(signal_data[[subject]]), center=TRUE, scale=TRUE))
-  }
-  
+  # zscore_data <- list()
+  # subjects <- names(signal_data)
+  # for (subject in subjects) {
+  #   zscore_data[[subject]] <- scale(signal_data[[subject]], center=TRUE, scale=TRUE)
+  # }
   return(zscore_data)
 }

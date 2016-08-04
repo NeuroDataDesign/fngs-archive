@@ -22,13 +22,8 @@
 #
 obs2corr <- function(observations) {
 
-  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])), simplify=FALSE, USE.NAMES=TRUE)
-  
-  # corr_data <- vector("list", length(observations))
-  # names(corr_data) <- names(observations)
-  # for (subject in names(corr_data)) {
-  #   corr_data[[subject]] <- abs(cor(observations[[subject]]))
-  # }
+  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])),
+                      simplify=FALSE, USE.NAMES=TRUE)
   
   return(corr_data)
 }
