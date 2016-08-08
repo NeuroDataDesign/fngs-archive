@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>FNGS 8/1</title>
+    <title>FNGS 8/8</title>
 
     <link rel="stylesheet" href="css/reveal.css">
     <link rel="stylesheet" href="css/theme/black.css">
@@ -128,125 +128,42 @@
         </section>
         
         <section data-background="#000066">
-            <h1>Autoregression</h1>
+            <h1>This week</h1>
             <ul>
-                <li><a href="https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/data_processing/fngs_v1/rds_files">Dataset</a></li>
-                <li>Examined effects of several transformations on autoregression</li>
-                <li><a href="https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/data_processing/Rutils/ewok">My code</a></li>
-            </ul>
-        </section>
-        
-         <section data-background="#000066">
-            <h1>AR Matrices</h1>
-            <a href = "../ewok_weekly/AR(0).csv">AR(0) csv</a> <br/>
-            <a href = "../ewok_weekly/AR(1).csv">AR(1) csv</a> <br/>
-            <a href = "../ewok_weekly/AR(2).csv">AR(2) csv</a>
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(0)</h1>
-            <img src="images/week_725/AR(0).jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(0) rank transformed</h1>
-            <img src="images/week_725/AR(0)_rank.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(0) thresholded</h1>
-            <img src="images/week_725/AR(0)_sparse.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(0) low rank</h1>
-            <img src="images/week_725/AR(0)_low.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(0) kalman filtered</h1>
-            <img src="images/week_725/AR(0)_kf.jpeg" height="400">
-        </section>
-
-	<section data-background="#000066">
-            <h1>AR(1)</h1>
-            <img src="images/week_725/AR(1).jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(1) rank transformed</h1>
-            <img src="images/week_725/AR(1)_rank.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(1) thresholded</h1>
-            <img src="images/week_725/AR(1)_sparse.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(1) low rank</h1>
-            <img src="images/week_725/AR(1)_low.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(1) kalman filtered</h1>
-            <img src="images/week_725/AR(1)_kf.jpeg" height="400">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(2)</h1>
-            <img src="images/week_725/AR(2).jpeg" height="450">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(2) rank transformed</h1>
-            <img src="images/week_725/AR(2)_rank.jpeg" height="450">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(2) thresholded</h1>
-            <img src="images/week_725/AR(2)_sparse.jpeg" height="450">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(2) low rank</h1>
-            <img src="images/week_725/AR(2)_low.jpeg" height="450">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(2) kalman filtered</h1>
-            <img src="images/week_725/AR(2)_kf.jpeg" height="450">
-        </section>
-        
-        <section data-background="#000066">
-            <h1>AR(3)</h1>
-            <img src="images/week_725/AR(3).jpeg" height="475">
-        </section>
-
-        <section data-background="#000066">
-            <h1>Prediction Accuracy</h1>
-            <ul>
-                <li>Trained AR model on first 850 points</li>
-                <li>Predicted next 49 and compared</li>
+                <li><a href="http://upward-spiral-science.github.io/fngs/reveal/week_81.html#/15">Last week's slides</a></li>
+                <li>Tried different parameters for Kalman filter and examined effects</li>
             </ul>
         </section>
         
         <section data-background="#000066">
-            <h1>Prediction Accuracy</h1> 
-            <video width="700" height="500" controls>
-  		<source src="images/week_725/pred/AR_prog.mp4" type="video/mp4">
-	    </video>
+            <h1>Default parameters</h1>
+            <img src="images/week_725/AR(3).jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)</li>
+            <li>R^2 = -7.56</li>
         </section>
         
         <section data-background="#000066">
-            <h1>Prediction Accuracy Individual Images</h1> 
-            <a href = "https://github.com/Upward-Spiral-Science/fngs/tree/gh-pages/reveal/images/week_725/pred">AR(0) - AR(12) Prediction Accuracy</a>
+            <h1>MLE</h1>
+            <img src="images/week_725/AR(3).jpeg" height="400">
+            <li>dlm(FF=0.3039547, GG=2.7184272, V=2.6155451, W=0.7186114, m0=0.4027390, C0=0.6656987)</li>
+            <li>R^2 = -3.75</li>
         </section>
         
         <section data-background="#000066">
-            <h1>AR model accuracy</h1> 
-            <img src="images/week_725/AR_accuracy.jpeg" height="475">
+            <h1>MLE</h1>
+            <img src="images/week_725/AR(3).jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=300, m0=0, C0=1e7)</li>
+            <li>R^2 = -2.50</li>
         </section>
+
+        <section data-background="#000066">
+            <h1>Thoughts</h1>
+            <ul>
+                <li>Need better prediction model</li>
+                <li>Better R^2 value only caused by scattered points</li>
+            </ul>
+        </section>
+        
         
         
 
