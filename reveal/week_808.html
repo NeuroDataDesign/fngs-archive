@@ -176,7 +176,7 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Accomplished this week</h1>
+            <h3>Accomplished this week</h3>
             <ul>
                 <li>Developed code to test histogram equalization of slice by slice (useless as I'll explain later)</li>
                 <li>Developed new sampling method that doesn't require the Clarity API</li>
@@ -188,16 +188,16 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Iterative Histograms</h1>
+            <h3>Iterative Histograms</h3>
             <ul>
                 <li>Last week I found the histogram equalization of each slice and combined the slices</li>
                 <li>This is improper technique as we are trying to find the histogram equalization of the whole volume not separate slices</li>
-                <li>Iterative histograms is a different technique where you find iteratively add the histograms accross the x y z axis</li>
+                <li>Iterative histograms is a different technique where you find the array dimensions and iteratively add the histograms accross the x y z axis</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Challenges</h1>
+            <h3>Challenges</h3>
             <ul>
                 <li>Iterative histograms are even more GPU intensive than slice by slice equalization</li>
                 <li>Wasted a lot of time trying to downsample data to run the code on my 3GB laptop</li>
@@ -207,7 +207,7 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Challenges part 2</h1>
+            <h3>Challenges part 2</h3>
             <ul>
                 <li>After sampling an memap is created - this means nibabel is rendered useless for manipulations and I cannot convert back to .nii</li>
                 <li>Due to my lack of understanding of interpolation my code might be deeply flawed</li>
@@ -217,7 +217,7 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Sampling Methods</h1>
+            <h3>Sampling Methods</h3>
             <ul>
                 <li>Random sampling with number generator (unreliable and ultimately uninformative)</li>
                 <li>Proportional representation based on bin numbers (Difficult to implement in practice)</li>
@@ -228,18 +228,25 @@
 
 
         <section data-background="#000066">
-            <h1>Interpolation based estimation</h1>
+            <h3>Interpolation based estimation</h3>
             <ul>
                 <li>Interpolation is the art of constructing new data points within a discrete range</li>
                 <li>A very crude definition is "curve fitting" based on simple functions</li>
                 <li>Similar to regression there is linear, exponential, etc.</li>
                 <li>Experimented around however due to the lack of availability of a "check" model, I just chose to go with linear interpolation because it's the fastest</li>
-                <li>What is the difference between sampling using interpolation of the zoom of an N size matrix and a simple downcale of the local mean</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Logic of iterated histograms</h1>
+            <h3>Interpolation based estimations pt 2</h3>
+            <ul>
+                <li>What is the difference between sampling using interpolation of the zoom of an N size matrix and a simple downcale of the local mean</li>
+                <li>Does higher order interpolation matter for our case</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Logic of iterated histograms</h3>
             <ul>
                 <li>Take cube of data</li>
                 <li>Find the dimensions thus creating your range parameters</li>
@@ -251,17 +258,16 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Issues I'm still in the process of solving</h1>
+            <h3>Issues still in the progress</h3>
             <ul>
                 <li>My method of converting back to a form involves creating an array of zeros based on the histogram of the data</li>
                 <li>Next I use 32 as the bin size and divide each cell of the histogram by the hist_sum value</li>
                 <li>I save the result as a csv file - however since I converted the 3D array into what is essentially a 2D representation of the histogram how do I convert back to either a 3D form</li>
-                <li></li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Steps taken to solve these problems</h1>
+            <h3>Steps taken to solve these problems</h3>
             <ul>
                 <li>Contacted the major clusters on campus - IDIES, MARCC, HPCC and asked if I could use a node of their cluster for free - No</li>
                 <li>Constructed a small 3D array and tried the manipulations I was using - currently using results to help me debug</li>
@@ -271,7 +277,7 @@
         </section>
 
         <section data-background="#000066">
-            <h1>NeuroCV Repo</h1>
+            <h3>NeuroCV Repo</h3>
             <ul>
                 <li>Stored Histogram equalization notes and all the various histogram equalization methods I've tested</li>
                 <li>A lot of code is not included because it requires nifti raw data files which Github does not provide space for - I'll create pointers using Git lfs, but my cortex account has all the necessary files as well</li>
@@ -281,7 +287,7 @@
         </section>
         
         <section data-background="#000066">
-            <h1>Next week</h1>
+            <h3>Next week</h3>
             <ul>
                 <li>Find way to prove my histogram equalization works - Problem: There are no 3D examples of histogram equalization on the web so difficult to prove</li>
                 <li>Find way to improve processing time</li>
