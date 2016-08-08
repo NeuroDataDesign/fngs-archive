@@ -86,24 +86,24 @@
         </section>
 
         <section data-background="#000066">
-            <h1>Multivariate Gaussian Exploration</h1>
+            <h1>Multivariate Gaussian Exploration <a href="https://github.com/neurodata/memory/blob/master/status/gaussian_mle.pdf">PDF version</a></h1>
             <ul>
                 <li>Have some k-dimensional multivariate distribution with mean $\mu$ and cov $\Sigma$</li>
             </ul>
-            $$	 f(\pmb{x} \vert \pmb{\mu}, \pmb{\Sigma}) = \frac{1}{{2\pi}^{\frac{p}{2}}|\pmb{\Sigma}|^{\frac{1}{2}}}exp\Bigg (-\frac{1}{2}(\pmb{x} - \pmb{\mu})^T\pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})\Bigg )$$
+            $$	 f(x \vert \mu, \Sigma) = \frac{1}{{2\pi}^{\frac{p}{2}}|\Sigma|^{\frac{1}{2}}}exp\Bigg (-\frac{1}{2}(x - \mu)^T\Sigma^{-1}(x - \mu)\Bigg )$$
         </section>
 
         <section data-background="#000066">
             <ul>
                 <li>Follows that we have the log-likelihood function:</li>
             </ul>
-            $$l(\pmb{x}) = K + N ln(|\pmb{\Sigma}|) + \sum_{i=1}^{N}(\pmb{x}_i - \pmb{\mu})^T\pmb{\Sigma}^{-1}(\pmb{x}_i - \pmb{\mu})$$
+            $$l(x) = K + N ln(|\Sigma|) + \sum_{i=1}^{N}(x_i - \mu)^T\Sigma^{-1}(x_i - \mu)$$
         </section>
 
         <section data-background="#000066">
             <ul>
-                <li>Estimator of mean: $\hat{\pmb{\mu}}= \frac{1}{N}\sum_{i=1}^N\pmb{x}_i$</li>
-                <li>Estimator of Covariance: $\hat{\pmb{\Sigma}} = \frac{1}{N}\sum_{i=1}^N(\pmb{x}_i-\pmb{\mu})(\pmb{x}_i-\pmb{\mu})^T$</li>
+                <li>Estimator of mean: $\hat{\mu}= \frac{1}{N}\sum_{i=1}^Nx_i$</li>
+                <li>Estimator of Covariance: $\hat{\Sigma} = \frac{1}{N}\sum_{i=1}^N(x_i-\mu)(x_i-\mu)^T$</li>
             </ul>
         </section>
 
