@@ -41,84 +41,103 @@
         <section data-background="#000066">
             <h1>Week's Accomplishments</h1>
             <ul>
-                <li>Implemented Linear and Quadratic Drift removal (using CPAC methods)</li>
-                <li>Finished a pipeline and analyzed for FNIRT brains (compared ts to kf-ts)</li>
-                <li>Decided AGAINST smoothing</li>
+                <li>Merged ndmg-master into ndmg-eric-dev</li>
+                <li>Multivariate Normal Exploration</li>
+                <li>Added linear and quadratic drift removal to pipeline</li>
+                <li>Created R style guide (if you use R, check this out before writing anything, it's pretty brief)</li>
+                <li>Built awesome QSub utility for easy cmd line BC1 job submission</li>
+            </ul>
         </section>
 
         <section data-background="#000066">
             <h1>Results for Pipeline</h1>
             <ul>
-                <li>Note: first version of pipeline implementing FNIRT</li>
+                <li>Note: first version of pipeline implementing both linear and quadratic drift removal</li>
+                <li>Also: removed kalman filtering until we know we have the parameters estimated properly</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>HNU1, no kalman filter</h1>
-            <img src="images/week_81/HNU_1_no_kf.png" height="400">
+            <h1>NKI, desikan atlas</h1>
+            <img src="images/week_88/NKI_no_kf_desikan_2mm.png" height="400">
         </section>
 
         <section data-background="#000066">
-            <h1>HNU1, kalman filter</h1>
-            <img src="images/week_81/HNU_1_kf.png" height="400">
+            <h1>NKI, Talairach 2mm</h1>
+            <img src="images/week_88/NKI_no_kf_Talairach_2mm.png" height="400">
         </section>
 
         <section data-background="#000066">
-            <h1>NKI, no kalman filter</h1>
-            <img src="images/week_81/NKI_no_kf.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>NKI, kalman filter</h1>
-            <img src="images/week_81/NKI_kf.png" height="400">
-        </section>
-        <section data-background="#000066">
-        <h1>DC1, no kalman filter</h1>
-        <img src="images/week_81/DC_1_no_kf.png" height="400">
-    </section>
-
-        <section data-background="#000066">
-            <h1>DC1, kalman filter</h1>
-            <img src="images/week_81/DC_1_kf.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>BNU1, no kalman filter</h1>
-            <img src="images/week_81/BNU_1_no_kf.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>BNU1, kalman filter</h1>
-            <img src="images/week_81/BNU_1_kf.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <h1>What this Means</h1>
+            <h1>Comments</h1>
             <ul>
-                <li>With some randomly chosen DLM, Kalman filtering helps</li>
-                <li>Pessimistic: might not actually work, since this DLM is completely arbitrary</li>
-                <li>Need to find how to optimize the DLM, so that when we filter we are doing it right</li>
+                <li>Pipeline looks very good, time to run on more data</li>
+                <li>There isn't really much left to add</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Quality Control for fMRI graphs</h1>
+            <h1>QSub Issues</h1>
             <ul>
-                <li>Goal: create a repo for fMRI graphs that demonstrates between-dataset variances</li>
-                <li>Similar to neurodata/dataset-variance, but those metrics don't really apply</li>
-                <li>Decide which metrics to include</li>
-                <li>Want to be able to run all of our discriminability analyses, and adds another layer of benchmarking for each pipeline as we improve</li>
+                <li>Ran into issue where I wanted to use BC1, but couldn't effectively submit 1000 jobs without LONI</li>
+                <li>Will advised that it would be awesome to have a command line tool to do it for us</li>
+                <li>Created qsub utility for braincloud <a href="https://github.com/ebridge2/qsub_braincloud">qsub repo</a></li>
+                <li>Notes: works well, but memory requesting is off still (need to update)</li>
             </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Multivariate Gaussian Exploration</h1>
+            <ul>
+                <li>Have some k-dimensional multivariate distribution with mean $\mu$ and cov $\Sigma$</li>
+            </ul>
+            $$	 f(\pmb{x} \vert \pmb{\mu}, \pmb{\Sigma}) = \frac{1}{{2\pi}^{\frac{p}{2}}|\pmb{\Sigma}|^{\frac{1}{2}}}exp\Bigg (-\frac{1}{2}(\pmb{x} - \pmb{\mu})^T\pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})\Bigg )$$
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Follows that we have the log-likelihood function:</li>
+            </ul>
+            $$l(\pmb{x}) = K + N ln(|\pmb{\Sigma}|) + \sum_{i=1}^{N}(\pmb{x}_i - \pmb{\mu})^T\pmb{\Sigma}^{-1}(\pmb{x}_i - \pmb{\mu})$$
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Estimator of mean: \hat{\pmb{\mu}}= \frac{1}{N}\sum_{i=1}^N\pmb{x}_i</li>
+                <li>Estimator of Covariance: \hat{\pmb{\Sigma}} = \frac{1}{N}\sum_{i=1}^N(\pmb{x}_i-\pmb{\mu})(\pmb{x}_i-\pmb{\mu})^T</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Experiment</h1>
+            <ul>
+                <li>Draw a population of 1000 items with $\mu = [2, 5]$ and $\Sigma = [4, 1; 1, 3]$</li>
+            </ul>
+            <img src="images/week_88/pop.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Use MLE formula derived above, receive estimators</li>
+                <li>$\hat{\mu} = [2.004098 4.965075]$</li>
+                <li>$\hat{\Sigma} = [4.026957 1.057485; 1.057485 3.077138]$</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Plot our confidence interval for the estimated gaussian</li>
+            </ul>
+            <img src="images/week_88/est.png" height="400">
         </section>
 
         <section data-background="#000066">
             <h1>Things to do this week</h1>
             <ul>
-                <li>Merge ndmg-master into ndmg-eric-dev</li>
-                <li>Run conversions to binary files from HCP dataset</li>
-                <li>Figure out top n-component extraction for our pipeline</li>
-                <li>Make R style guide and distribute ASAP</li>
-
+                <li>make fMRI graph variance repo</li>
+                <li>do gaussian mixture experiments (?)</li>
+                <li>run pipeline on lots of data and make spreadsheet of results</li>
+                <li>Meet with greg for merging eric-dev to master</li>
+                <li>Start studying for GREs</li>
             </ul>
         </section>
 
@@ -301,8 +320,14 @@
 			Reveal.initialize({
 				history: true,
 				// More info https://github.com/hakimel/reveal.js#dependencies
+				math: {
+                    mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+                },
+
 				dependencies: [
 					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/math/math.js', async: true },
 					{ src: 'plugin/markdown/markdown.js' },
 					{ src: 'plugin/notes/notes.js', async: true },
 					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
