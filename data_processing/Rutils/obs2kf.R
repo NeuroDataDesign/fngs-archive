@@ -30,12 +30,5 @@ obs2kf <- function(observations) {
     array(flt[2:length(flt)], dim=dim(observations[[x]]))
   }, simplify=FALSE, USE.NAMES=TRUE)
   
-  # kf_data <- list()
-  # subjects <- names(observations)
-  # for (subject in subjects) {
-  #   flt <- dlmFilter(observations[[subject]], dlm)$m
-  #   kf_data[[subject]] <- array(flt[2:length(flt)], dim=dim(observations[[subject]]))
-  # }
-  
   return(kf_data)
 }

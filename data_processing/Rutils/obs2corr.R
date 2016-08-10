@@ -18,7 +18,12 @@
 # Copyright (c) 2016. All rights reserved.
 #
 # a utility to convert timeseries to correlation matrices. 
+# Inputs:
+#   observations[[subs]][timesteps, rois]: a list of observations 
+#                 for a particular subject.
 #
+# OUtputs:
+#   zscore_data[[subs]][timesteps, rois]: the locally z-scored roi timeseries. 
 #
 obs2corr <- function(observations) {
 

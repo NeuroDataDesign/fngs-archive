@@ -20,26 +20,39 @@
 #
 #a function for opening the graph data
 # Input:
-#   fnames[nx1]: the filenames
-#   scan_pos[1]: the position of the subject id in the filenames, separated by _ characters
+#   fnames[subs]: the filenames
+#   **NOTE** we assume that all dataset, scan, and run info is separated in the
+#   filename by underscores. IE, dataset_subject_run_(other information).rds
+#   dataset[1]: the positiohn of the dataset id in the filenames
+#   scan_pos[1]: the position of the subject id in the filenames
+#   run_pos[1]: the position of the run information in the filenames
 # Outputs:
-#   ts[[kxkxn]][n]][kxt]: the ts loaded from the specified file names
-#   subjects[nx1]: the subject ids
+#   ts[[subs]][timesteps, rois]: the ts loaded from the specified file names
+#   dataset[subs]: the dataset ids
+#   subjects[subs]: the subject ids
+#   runs[subs]: the run ids
 #
-open_timeseries <- function(fnames, scan_pos=2) {
+
+open_timeseries <- function(fnames, dataset_pos=1, scan_pos=2, run_pos =3) {
   print("opening timeseries...")
-  subjects <- c()
+  subjects <- vector("character", length(fnames))
+  dataset <- vector("character", length(fnames))
+  runs <- vector("character", length(fnames))
   numscans<-length(fnames)
-  ts <- list()
-  for (i in 1:numscans) { # most of the preprocessing now done in python instead
-    tts <- readRDS(fnames[i]) # read the graph from the filename
+  ts <- vector("list", length(fnames))
+  names(ts) <- 1:numscans
+  for (i in as.numeric(names(ts))) {
+    tts <- readRDS(fnames[i]) # read the timeseries from the filename
     basename <- basename(fnames[i])     # the base name of the file
     base_split <- strsplit(basename, "_") # parse out the subject, which will be after the study name
-    subjects[i] <- unlist(base_split)[scan_pos] # subject name must be a string, so do not convert to numeric
+    name <- unlist(base_split)
+    dataset[i] <- name[dataset_pos]
+    subjects[i] <- name[scan_pos] # subject name must be a string, so do not convert to numeric
+    runs[i] <- name[run_pos]
     tts[is.nan(tts)] <- 0
-    ts[[paste(i)]] <-t(tts)
+    ts[[i]] <-t(tts)
   }
-  pack <- list(ts, subjects)# pack up the subject ids and the graphs
+  pack <- list(ts, dataset, subjects, runs)# pack up the dataset, subject, and run ids witht the timeseries
   return(pack)
 }
 
