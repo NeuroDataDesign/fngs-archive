@@ -1,0 +1,15 @@
+import numpy as np
+import re
+import matplotlib.pyplot as plt
+
+with open('memtest.txt', 'r') as mem:
+	lines = mem.readlines()
+
+testar = np.asarray([re.split('\\s+', line)[2] for line in lines])[1:].astype(int)
+
+fig=plt.figure()
+ax = fig.add_subplot(111)
+ax.plot(range(0, testar.shape[0]), testar/1000)
+ax.set_ylabel('memory usage in GB')
+ax.set_xlabel('Time (s)')
+
