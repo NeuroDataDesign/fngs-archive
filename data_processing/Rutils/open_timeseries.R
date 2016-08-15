@@ -33,7 +33,7 @@
 #   runs[subs]: the run ids
 #
 
-open_timeseries <- function(fnames, dataset_pos=1, scan_pos=2, run_pos =3) {
+open_timeseries <- function(fnames, dataset_pos=1, sub_pos=2, run_pos =3) {
   print("opening timeseries...")
   subjects <- vector("character", length(fnames))
   dataset <- vector("character", length(fnames))
@@ -44,15 +44,15 @@ open_timeseries <- function(fnames, dataset_pos=1, scan_pos=2, run_pos =3) {
   for (i in as.numeric(names(ts))) {
     tts <- readRDS(fnames[i]) # read the timeseries from the filename
     basename <- basename(fnames[i])     # the base name of the file
-    base_split <- strsplit(basename, "_") # parse out the subject, which will be after the study name
+    base_split <- strsplit(basename, "\\.|-|_") # parse out the subject, which will be after the study name
     name <- unlist(base_split)
     dataset[i] <- name[dataset_pos]
-    subjects[i] <- name[scan_pos] # subject name must be a string, so do not convert to numeric
+    subjects[i] <- name[sub_pos] # subject name must be a string, so do not convert to numeric
     runs[i] <- name[run_pos]
     tts[is.nan(tts)] <- 0
     ts[[i]] <-t(tts)
   }
-  pack <- list(ts, dataset, subjects, runs)# pack up the dataset, subject, and run ids witht the timeseries
+  pack <- list(ts=ts, dataset=dataset, subjects=subjects, runs=runs)# pack up the dataset, subject, and run ids witht the timeseries
   return(pack)
 }
 

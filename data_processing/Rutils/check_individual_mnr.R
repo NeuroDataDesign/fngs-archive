@@ -24,24 +24,25 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
 source('obs2kf.R')
 
-datasets <- c('NKI')
-outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_88/'
+datasets <- c('NKI', 'BNU1', 'BNU2', 'HNU1', 'DC1')
+outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_815/'
 #kfopts <- c('kf', 'no kf')
 kfopts <- c('no kf')
+scan_pos <- c(2, 3, 3, 3, 3)
 inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirtv2/'
 
 ## Loading Timeseries --------------------------------------------------------------------------------
-gpath <- paste('C:/Users/ebrid/Documents/R/FNGS_results/for_foo/', dataset, '/', sep="")
-atlases <- c('desikan_2mm', 'Talairach_2mm')
+
+atlases <- c('desikan', 'Talairach_2mm')
 for (at in atlases) {
-  dir.create(paste(outpath, at, "/", sep=""))
+  # dir.create(paste(outpath, at, "/", sep=""))
   for (dataset in datasets) {
-    opath <- paste(outpath, at, "/", dataset, "/", sep="") 
-    dir.create(opath)
-    tpath <- paste(inpath, at, "/", dataset, "/", sep="")
+    opath <- paste(outpath, dataset, "/", at, "/", sep="") 
+    # dir.create(opath)
+    tpath <- paste(inpath, dataset, "/", at, "/", sep="")
     tsnames <- list.files(tpath, pattern="\\.rds", full.names=TRUE)
     
-    tsobj <- open_timeseries(tsnames, scan_pos=2)
+    tsobj <- open_timeseries(tsnames, sub_pos=scan_pos[which(datasets == dataset)])
     
     ts <- tsobj[[1]]
     sub <- tsobj[[3]]
@@ -72,10 +73,11 @@ for (at in atlases) {
       
       ## Compute MNR ----------------------------------------------------------------
       
-      thresh_obj <- thresh_mnr(wgraphs, sub)
+      #thresh_obj <- thresh_mnr(wgraphs, sub, N = 25)
       
-      mnrthresh <- thresh_obj[[1]]
-      Dthresh <- thresh_obj[[2]]
+      #mnrthresh <- thresh_obj[[1]]
+      #Dthresh <- thresh_obj[[2]]
+      mnrthresh <- 0
       
       ranked_graphs <- rank_matrices(wgraphs)
       Drank <- distance(ranked_graphs)
@@ -97,7 +99,6 @@ for (at in atlases) {
         } else {
           Dmax <- Dthresh
           winner <- 'thresh'
-          
         }    
       }
     }
@@ -113,7 +114,7 @@ for (at in atlases) {
     
     distance_title <- sprintf('MNR = %.4f, best = %s, %s', maxmnr, winner, kfo)
     distance_plot <- ggplot(melt(Dmax), aes(x=Var1, y=Var2, fill=value)) + 
-      geom_tile(color="white") +
+      geom_tile() +
       scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
       xlab("Scan") + ylab("Scan") + ggtitle(distance_title) +
       theme(text=element_text(size=20))
@@ -121,7 +122,7 @@ for (at in atlases) {
     kde_plot <- ggplot()+geom_ribbon(data=meltkde, aes(x=`Graph Distance`, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
       ggtitle("Subject Relationships") + theme(text=element_text(size=20))
     
-    png(paste(opath, dataset, "_", kfopts, "_", at, ".png", sep=""), height=600, width = 1200)
+    png(paste(outpath, dataset, "_", kfopts, "_", at, ".png", sep=""), height=600, width = 1200)
     multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
     dev.off()
   }
