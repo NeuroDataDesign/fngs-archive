@@ -41,103 +41,110 @@
         <section data-background="#000066">
             <h1>Week's Accomplishments</h1>
             <ul>
-                <li>Merged ndmg-master into ndmg-eric-dev</li>
-                <li>Multivariate Normal Exploration</li>
-                <li>Added linear and quadratic drift removal to pipeline</li>
-                <li>Created R style guide (if you use R, check this out before writing anything, it's pretty brief)</li>
-                <li>Built awesome QSub utility for easy cmd line BC1 job submission</li>
+                <li>Massive memory issue fixed</li>
+                <li>Multivariate GMM exploration</li>
+                <li>Lots of analyzed graphs/mnr statistics</li>
+                <li>Redid all memory-related code to reflect more consistent understanding of analysis</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>Results for Pipeline</h1>
+            <h2>Memory Related issue</h2>
             <ul>
-                <li>Note: first version of pipeline implementing both linear and quadratic drift removal</li>
-                <li>Also: removed kalman filtering until we know we have the parameters estimated properly</li>
+                <li>Problem: running large scale analysis was leading to HUGE memory problems</li>
+                <li>Python fails to effectively clean itself up when dealing with very large jobs</li>
+                <li>Never became a problem previously, because Greg uses bash scripts (termination at python session conclusion automatically frees memory)</li>
+                <li>Primary offender: matplotlib leaves artifacts ALL OVER THE PLACE</li>
+                <li>If anybody has memory issues relating to python scripts, I spent a long time debugging and can help ffr</li>
             </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>NKI, desikan atlas</h1>
-            <img src="images/week_88/NKI_no kf_desikan_2mm.png" height="400">
+            <h2>Solving Memory Issues</h2>
+            <ul>
+                <li>Multiprocessing module in python</li>
+                <li>Allows for creation of external sessions for individual function calls, perfect for our usage</li>
+                <li>IE, spawn individual sessions that automatically free their own memory at termination, instead of crappy python garbage collector</li>
+            </ul>
         </section>
 
         <section data-background="#000066">
-            <h1>NKI, Talairach 2mm</h1>
-            <img src="images/week_88/NKI_no kf_Talairach_2mm.png" height="400">
+            <h2>Serial Performance</h2>
+            <ul>
+                <li>Running jobs serially leads to consistent memory usage</li>
+                <img src="images/week_81/fngs_mem_3sub.png" height="400">
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Trivial to Upscale</h2>
+            <ul>
+                <li>running jobs in parallel, can easily just spawn processes and stagger</li>
+                <li>Could write something to automatically do this very simply, but that is down the line...</li>
+                <img src="images/week_81/mem_parallel.png" height="400">
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>New Data analyzed</h2>
+            <ul>
+                <li>Data analyzed with the version of the pipeline shown 2 weeks ago</li>
+                <li>Comparisons are to same pipeline, without linear and quadratic drift removal (top) and with (bottom)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>NKI, desikan</h2>
+            <img src="images/week_81/NKI_no kf_desikan_2mm.png" height="200">
+            <img src="images/week_815/NKI_no_kf_desikan_2mm.png" height="200">
+        </section>
+
+        <section data-background="#000066">
+            <h2>BNU1, desikan</h2>
+            <img src="images/week_81/BNU1_no kf_desikan_2mm.png" height="200">
+            <img src="images/week_815/BNU1_no_kf_desikan_2mm.png" height="200">
+        </section>
+
+        <section data-background="#000066">
+            <h2>BNU2, desikan</h2>
+            <img src="images/week_81/BNU2_no kf_desikan_2mm.png" height="200">
+            <img src="images/week_815/BNU2_no_kf_desikan_2mm.png" height="200">
+        </section>
+
+        <section data-background="#000066">
+            <h2>DC1, desikan</h2>
+            <img src="images/week_81/DC1_no kf_desikan_2mm.png" height="200">
+            <img src="images/week_815/DC1_no_kf_desikan_2mm.png" height="200">
+        </section>
+
+        <section data-background="#000066">
+            <h2>HNU1, desikan</h2>
+            <img src="images/week_81/HNU1_no kf_desikan_2mm.png" height="200">
+            <img src="images/week_815/HNU1_no_kf_desikan_2mm.png" height="200">
+        </section>
+
+        <section data-background="#000066">
+            <h2>Atlas Choice</h2>
+            <img src="images/week_815/mnrs.png" height="400">
         </section>
 
         <section data-background="#000066">
             <h1>Comments</h1>
             <ul>
-                <li>Pipeline looks very good, time to run on more data</li>
-                <li>There isn't really much left to add</li>
+                <li>Pipeline looks awesome; mnrs are consistently great</li>
+                <li>Benchmark against CPAC head to head this week for benchmark datasets?</li>
+                <li>Direct comparison of mnrs, graphs produced, and memory information/runtime</li>
             </ul>
-        </section>
-
-        <section data-background="#000066">
-            <h1>QSub Issues</h1>
-            <ul>
-                <li>Ran into issue where I wanted to use BC1, but couldn't effectively submit 1000 jobs without LONI</li>
-                <li>Will advised that it would be awesome to have a command line tool to do it for us</li>
-                <li>Created qsub utility for braincloud <a href="https://github.com/ebridge2/qsub_braincloud">qsub repo</a></li>
-            </ul>
-        </section>
-
-        <section data-background="#000066">
-            <h2>Multivariate Gaussian Exploration</h2>
-            <ul>
-                <li><a href="https://github.com/neurodata/memory/blob/master/status/gaussian_mle.pdf">PDF version</a></li>
-                <li>Have some k-dimensional multivariate distribution with mean $\mu$ and cov $\Sigma$</li>
-            </ul>
-            $$	 f(x \vert \mu, \Sigma) = \frac{1}{{2\pi}^{\frac{p}{2}}|\Sigma|^{\frac{1}{2}}}exp\Bigg (-\frac{1}{2}(x - \mu)^T\Sigma^{-1}(x - \mu)\Bigg )$$
-        </section>
-
-        <section data-background="#000066">
-            <ul>
-                <li>Follows that we have the log-likelihood function:</li>
-            </ul>
-            $$l(x) = K + N ln(|\Sigma|) + \sum_{i=1}^{N}(x_i - \mu)^T\Sigma^{-1}(x_i - \mu)$$
-        </section>
-
-        <section data-background="#000066">
-            <ul>
-                <li>Estimator of mean: $\hat{\mu}= \frac{1}{N}\sum_{i=1}^Nx_i$</li>
-                <li>Estimator of Covariance: $\hat{\Sigma} = \frac{1}{N}\sum_{i=1}^N(x_i-\mu)(x_i-\mu)^T$</li>
-            </ul>
-        </section>
-
-        <section data-background="#000066">
-            <h1>Experiment</h1>
-            <ul>
-                <li>Draw a population of 1000 items with $\mu = [2, 5]$ and $\Sigma = [4, 1; 1, 3]$</li>
-            </ul>
-            <img src="images/week_88/pop.png" height="400">
-        </section>
-
-        <section data-background="#000066">
-            <ul>
-                <li>Use MLE formula derived above, receive estimators</li>
-                <li>$\hat{\mu} = [2.004098, 4.965075]$</li>
-                <li>$\hat{\Sigma} = [4.026957, 1.057485; 1.057485, 3.077138]$</li>
-            </ul>
-        </section>
-
-        <section data-background="#000066">
-            <ul>
-                <li>Plot our confidence interval for the estimated gaussian</li>
-            </ul>
-            <img src="images/week_88/est.png" height="400">
         </section>
 
         <section data-background="#000066">
             <h1>Things to do this week</h1>
             <ul>
-                <li>make fMRI graph variance repo</li>
-                <li>do gaussian mixture experiments (?)</li>
-                <li>run pipeline on lots of data and make spreadsheet of results</li>
-                <li>Meet with greg for merging eric-dev to master</li>
-                <li>Start studying for GREs</li>
+                <li>finish fMRI variance repo</li>
+                <li>write my own GMM code and test</li>
+                <li>Do lots of ML tutorials</li>
+                <li>use EM for estimating covariance matrices of sources for conditions given our input vec</li>
+                <li>studying for GREs</li>
             </ul>
         </section>
 
