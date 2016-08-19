@@ -33,7 +33,7 @@ inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirtv2/'
 
 ## Loading Timeseries --------------------------------------------------------------------------------
 
-atlases <- c('desikan', 'Talairach_2mm')
+atlases <- c('desikan_2mm', 'Talairach_2mm')
 for (at in atlases) {
   # dir.create(paste(outpath, at, "/", sep=""))
   for (dataset in datasets) {
