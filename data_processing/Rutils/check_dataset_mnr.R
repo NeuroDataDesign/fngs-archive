@@ -81,8 +81,8 @@ for (at in atlases) {
     
     #thresh_obj <- thresh_mnr(wgraphs, sub, N = 25)
     
-    #mnrthresh <- thresh_obj[[1]]
-    #Dthresh <- thresh_obj[[2]]
+    mnrthresh <- thresh_obj[[1]]
+    Dthresh <- thresh_obj[[2]]
     mnrthresh <- 0
     
     ranked_graphs <- rank_matrices(wgraphs)
