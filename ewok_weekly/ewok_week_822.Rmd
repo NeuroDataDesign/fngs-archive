@@ -152,6 +152,10 @@ plot(x, y, main="Multivariate Kalman Filter")
 lines(x_noise, y_noise, col="black")
 lines(kf$state[,1], kf$state[,2], col="blue")
 legend("topleft", c("Actual", "Measurement", "Kalman"), lty=c(0,1,1), pch=c(1,-1,-1), col=c("black", "black", "blue"))
+rsq_kf_x <- cor(x, kf$state[,1])^2
+rsq_kf_y <- cor(y, kf$state[,2])^2
+rsq_kf_x
+rsq_kf_y
 ```
 
 Another example:
@@ -171,6 +175,10 @@ plot(x, y, main="Multivariate Kalman Filter")
 lines(x_noise, y_noise, col="black")
 lines(kf$state[,1], kf$state[,2], col="blue")
 legend("topleft", c("Actual", "Measurement", "Kalman"), lty=c(0,1,1), pch=c(1,-1,-1), col=c("black", "black", "blue"))
+rsq_kf_x <- cor(x, kf$state[,1])^2
+rsq_kf_y <- cor(y, kf$state[,2])^2
+rsq_kf_x
+rsq_kf_y
 ```
 
 ## Kalman Smoother
