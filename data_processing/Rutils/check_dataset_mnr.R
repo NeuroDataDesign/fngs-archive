@@ -24,12 +24,13 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/hell_dist.
 source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
 source('obs2kf.R')
 
-datasets <- c('NKI', 'BNU1', 'BNU2', 'HNU1', 'DC1')
-outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_815/'
+#datasets <- c('NKI', 'BNU1', 'BNU2', 'HNU1', 'DC1')
+datasets <- c('NKI', 'BNU1', 'BNU2')
+outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_822/'
 #kfopts <- c('kf', 'no kf')
 kfopts <- c('no kf')
 scan_pos <- c(2, 3, 3, 3, 3)
-inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirtv2/'
+inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirt_v3/'
 
 ## Loading Timeseries --------------------------------------------------------------------------------
 
@@ -81,8 +82,8 @@ for (at in atlases) {
     
     #thresh_obj <- thresh_mnr(wgraphs, sub, N = 25)
     
-    mnrthresh <- thresh_obj[[1]]
-    Dthresh <- thresh_obj[[2]]
+    #mnrthresh <- thresh_obj[[1]]
+    #Dthresh <- thresh_obj[[2]]
     mnrthresh <- 0
     
     ranked_graphs <- rank_matrices(wgraphs)
