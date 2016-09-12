@@ -1,0 +1,180 @@
+---
+title: "ewok_week_912"
+author: "Eric Walker"
+date: "September 12, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Kalman Filter EM algorithm
+
+The Expectation Maximization algorithm for estimating parameters consists of a two-step process whereby a probability distribution over a weighted set of all possible completions of missing data is guessed using the current estimates of the parameters (E-step) and then this is used to create a new estimate of the parameters by maximizing the expected log-likelihood (M-step). These steps are repeated in an alternating fashion until the difference between the new estimates and the previous estimates falls below a specified threshold.
+```{r kfsu, include=FALSE}
+KFSu <- function(A,C,Q,R,x0,v0,y) {
+  
+  T=length(y)
+  Fv1=vector(,T)
+  Fv2=vector(,T)
+  Fx1=vector(,T)
+  Fx2=vector(,T)
+  Sx=vector(,T)
+  Sv=vector(,T)
+  Scov=vector(,T)
+  
+  CRC = C * (1/R) * C
+  
+  # Filter
+  for (t in 1:T) {
+    if (t==1) {
+      Fv1[t]=v0-(v0*CRC*v0 - v0*CRC*1/((1/v0)+CRC)*CRC*v0)
+      Fv2[t]=A*Fv1[t]*A+Q
+      Fx1[t]=x0+v0*C*(1/R)*(y[t]-C*x0)-v0*CRC*1/((1/v0)+CRC)*C*(1/R)*(y[t]-C*x0)
+      Fx2[t]=A*Fx1[t]
+    } else {
+      v2=Fv2[t-1]
+      Fv1[t]=v2-v2*CRC*v2+v2*CRC*1/((1/v2)+CRC)*CRC*v2
+      Fv2[t]=A*Fv1[t]*A+Q
+      x2=Fx2[t-1]
+      Fx1[t]=x2 + v2*C*(1/R)*(y[t]-C*x2)-v2*CRC*1/((1/v2) +CRC)*C*(1/R)*(y[t]-C*x2)
+      Fx2[t]=A*Fx1[t]
+    }
+  }
+  
+  # Smoother
+  for (i in 1:T) {
+    t=T-i+1
+    if (t==T) {
+      Sv[t]=Fv1[t]
+      Jt=Fv1[t]*A/(Fv2[t])
+      Scov[t]=Fv2[t]*Jt
+      Sx[t]=Fv1[t]+Jt*(Fv2[t]-A*Fv1[t])
+    } else {
+      Jt=Fv1[t]*A/(Fv2[t])
+      Sv[t]=Fv1[t]+Jt*(Sv[t+1]-Fv2[t])*Jt
+      Scov[t]=Sv[t+1]*Jt
+      Sx[t]=Fx1[t]+Jt*(Sx[t+1]-A*Fx1[t])
+    }
+  }
+  return(list(Fv1=Fv1,Fv2=Fv2,Fx1=Fx1,Fx2=Fx2,Sx=Sx,Sv=Sv,Scov=Scov))
+}
+```
+
+I used the following equation for the likelihood:
+
+$$\frac{T}{2}log|Q^{-1}|-\frac{1}{2}Tr\left(Q^{-1}\left(\sum_{t=0}^{T-1}\left(\textbf{x}_{t+1}-A\textbf{x}_t\right)\left(\textbf{x}_{t+1}-A\textbf{x}_t\right)^T\right)\right)+\frac{T+1}{2}log|R^{-1}|-\frac{1}{2}Tr\left(R^{-1}\left(\sum_{t=0}^T\left(\textbf{y}_t-C\textbf{x}_t\right)^T\left(\textbf{y}_t-C\textbf{x}_t\right)^T\right)\right)$$
+
+```{r kuem}
+# kalman_uni_em.R
+# Created by Ewok on 2016-09-11
+# Email: ewalke31@jhu.edu
+# Copyright (c) 2016. All rights reserved. 
+#
+# An implementation of a univariate Expectation Maximization Kalman Filter algorithm.
+#
+# Inputs:
+#   y[t]
+#     - the observed data
+#     - univariate, t timesteps
+#   a, c, q, r, pi, v
+#     - initial parameter values
+#     - state transition, generative, state noise, output noise, state mean, covariance
+#   max_i
+#     - maximum number of iterations before cut-off
+#     - default of 20
+#   tol
+#     - minimum difference between iterations before cut-off
+#     - default of 0.01
+#
+# Outputs:
+#   A, C, Q, R, Pi, V
+#     - final parameter estimations
+#     - equivalent to respectively named inputs
+#   Sx
+#     - kalman smoothed values
+#   lik
+#     - log likelihood
+#   
+kalman_uni_em <- function(y, a, c, q, r, pi, v, max_i=20, tol=0.01) {
+
+  A <- a
+  C <- c
+  Q <- q
+  R <- r
+  Pi <- pi
+  V <- v
+  n <- length(y)  # number of timesteps
+  i <- 1  # iteration
+  diff <- 1  # difference between iterations
+  Pt <- vector(, n)
+  Ptt_1 <- vector(, n-1)
+  lik <- vector(, max_i)
+  
+  while (i <= max_i && diff > tol) {
+    
+    #  E Step:
+    s <- KFSu(A, C, Q, R, Pi, V, y)
+    for (t in 1:n) {
+      Pt[t] <- s$Sv[t]+s$Sx[t]*s$Sx[t]
+      if (t != n) {
+        Ptt_1[t] <- s$Scov[t]+s$Sx[t+1]*s$Sx[t]
+      }
+    }
+    like = (n/2)*log(1/Q)-0.5*(1/Q)*sum((s$Fx2-A*s$Fx1)^2)+((n+1)/2)*log(1/R)-0.5*(1/R)*sum((y-C*s$Fx1)^2)
+    lik[i] <- log(like)
+    
+    #  M Step:
+    C_new <- sum(y*s$Sx) / sum(Pt)
+    R_new <- (sum(y*y)-sum(C_new*s$Sx*y)) / n
+    A_new <- sum(Ptt_1) / sum(Pt[1:n-1])
+    Pi_new <- s$Sx[1]
+    Q_new <- 1  # constraint
+    V_new <- V  # constraint
+    
+    # updates
+    diff <- abs(C_new-C)+abs(R_new-R)+abs(A_new-A)+abs(Q_new-Q)+abs(Pi_new-Pi)+abs(V_new-V)
+    i <- i+1
+    A <- A_new
+    C <- C_new
+    Q <- Q_new
+    R <- R_new
+    Pi <- Pi_new
+    V <- V_new
+  }
+  lik=lik[lik!=0]
+  return(list(A=A, C=C, Q=Q, R=R, Pi=Pi, V=V, Sx=s$Sx, lik=lik))
+}
+```
+
+For some reason, the C matrix does not seem to be converging to the correct value, and it is messing up the results.
+
+Consider the following example, where the initial state mean is started at the correct value:
+
+The red line is the actual sine curve, the blue is after 3 iterations, and the black is after 100.
+```{r ex, warning=FALSE}
+t <- seq(0,4*pi,,100)
+actual <- sin(t)
+x1 <- kalman_uni_em(actual, 1, 1, 1, 1, 0, 0, 100, 0.0001)
+x2 <- kalman_uni_em(actual, 1, 1, 1, 1, 0, 0, 3, 0.01)
+plot(t, x1$Sx, main="EM KF Algorithm on Sine Wave", xlab="Timestep", ylab="Value", type="l")
+lines(t, x2$Sx, col="blue")
+lines(t, actual, col="red")
+print(x1)
+plot(t, x1$lik, main="Log Likelihood of EM KF Algorithm", xlab="Iteration", ylab="Log Likelihood")
+```
+
+Clearly, something is going wrong. The C matrix has a value of 0.262 when its ideal value is 1. This seems to be causing the amplification by a factor of approximately 4. As the number of iterations increases, so does the amplification, maxing out around 4.
+
+***
+
+The error appears to persist even with a straight line:
+```{r ex2, warning=FALSE}
+t <- 1:100
+series <- rep(5,100)
+x <- kalman_uni_em(series, 1, 1, 1, 1, 5, 0, 100, 0.0001)
+plot(t, x$Sx, main="EM KF Algorithm on Straight Line", xlab="Timestep", ylab="Value")
+lines(t, series, col="red")
+print(c(x$A, x$C, x$Q, x$R))
+```
