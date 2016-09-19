@@ -5,108 +5,63 @@
 #
 # An implementation of a univariate EM Kalman Filter algorithm.
 #
-#
-# given:
-#     n is the number of variables we are tracking
-#     t is the number of timesteps/observations
-#     m is the number of sensors we are using
-#
-# NOTE: Generally, Z and X are in the forms [m, t] and [n, t]
-#   respectively. Here, we use the forms [t, m] and [t, n], as these
-#   are the general conventions to have observations (t) as the rows
-#   and variables (n, m) as the columns.
 # Inputs:
-#   F[n, n]
-#     - the update matrix
-#     - updating the parameters for our predicted states
-#   Z[t, m]
-#     - the measurement vector
-#     - outputs directly from the sensors
-#   H[m, n]
-#     - extraction matrix
-#     - tells the sensor readings if we have input X
-#     - ideally, Z^T = HX^T
-#     - hope for this to be the identity matrix
-#   R[t, m, m]
-#     - variance-covariance matrix of the sensors
-#   u[t, c, 1]
-#     - move matrix
-#     - change to X that is known to be happening
-#   B[n, c]
-#     - governs impact on each variable known change has
-#   Q[t, n]
-#     - the environment noise at each time step
-#   p0[n, n]
-#     - initial guess of the covariance matrix
-#     - gives a sense of the possible noise in our estimate/process
-#   x0[1, n]
-#     - initial guess of the state we are in
+#   y[t]
+#     - observed data
+#     - univariate t time stpe
+#   a, c, q, r, pi, v
+#     - initial parameter values
+#     - state transition, generative, state noise, output noise, state mean, covariance
+#   max_i
+#     - maximum number of iterations before cut-off
+#     - default of 20
+#   tol
+#     - minimum difference between iterations before cut-off
+#     - default of 0.01
 # Outputs:
-#   X[t, n]
-#     - the state matrix
-#   P[t, n, n]
-#     - the process covariance matrices
+#   A, C, Q, R, Pi, V
+#     - final parameter estimations
+#     - equivalent to respectively named inputs
+#   Sx
+#     - kalman smoothed values
+#   lik
+#     - log likelihood
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-def kalman_filter_multivariate(Fm, Z, H, R, u, B, Q, p0, x0):
+def kalman_em_univariate(y, a, c, q, r, pi, v, max_i = None, tol = None):
 	# access important dimensions
-	t = Z.shape[0]
-	n = x0.shape[1]
-	m = Z.shape[1]
 
-	#TODO: manipulate array inputs to be the same shape
-
-	# c = u.shape[1]
-
-	#allocate space for arrays
-	X = np.zeros((t, n))
-	P = np.zeros((t, n, n))
-	X[0, :] = x0
-	P[0, :, :] = p0
-
-	for k in xrange(1,t):
-		X[k, :] = np.dot(Fm, X[k-1, :]) + np.squeeze(np.dot(B, u[k, :, :]))
-		P[k, :, :] = np.dot(np.dot(Fm, P[k-1,: ,:]), np.transpose(Fm)) + Q[k, :]
-		K = np.dot(np.dot(P[k, :, :], np.transpose(H)), np.linalg.inv(np.array(np.dot(np.dot(H, P[k, :, :]), np.transpose(H))) + R[k, :, :]))
-		X[k, :] = X[k, :] + np.dot(K, (Z[k, :] - np.dot(H, X[k, :])))
-		P[k, :, :] = np.dot((np.eye(n) - np.dot(K, H)), P[k, :, :])
-
-	return P, X
-
-def univariate_simul():
-	timesteps = 50
-
-	true_value = .25
-	variance = .1
+	if max_i is None:
+		max_i = 20
+	if tol is None:
+		tol = .01
 	
-	Z = np.random.normal(true_value, variance, size = (timesteps, 1))
-	R = .2*np.ones((timesteps, 1, 1))
-	Q = (1e-5)*np.ones((timesteps, 1))
+	A = a
+	C = c
+	Q = q
+	R = r
+	Pi = pi
+	V = v
+	n = len(y) # number of timesteps
+	i = 1 #iteration
+	diff = 1 # difference between iterations
+	Pt = np.zeros((n, 1))
+	Ptt_1 = np.zeros((n-1, 1))
+	lik = np.zeros((max_i, 1))
 	
-	u = np.zeros((timesteps,1, 1)) #control variable matrix
-	#for simplicity
-	B = np.zeros((1, 1))
-	H = np.ones((1, 1))
-	Fm = np.ones((1, 1))
+	while (i <= max_i) and (diff > tol):
+		
+		#E step
 
-	p0 = np.ones((1, 1))
-	x0 = np.zeros((1, 1))
+		#M step
 
-	(P, X) = kalman_filter_multivariate(Fm, Z, H, R, u, B, Q, p0, x0)
-	
-	plt.figure()
-	plt.plot(Z, 'k+', label = 'measurements')
-	plt.plot(X, 'b-', label = 'kalman estimate')
-	plt.plot(true_value*np.ones((timesteps,)))
-	plt.legend()
-	plt.title('Univariate Kalman filter on uniformly sampled random data')
-	plt.xlabel('Time step')
-	plt.ylabel('Value')
-	plt.show()
+	#how is Sx even initialized?
+	return A, C, Q, R, Pi, V, Sx, lik
 
-def multivaraite_simul():
+
+def univaraite_simul():
 	timesteps = 50
 	signal_1 = .25
 	signal_2 = 4
@@ -145,7 +100,6 @@ def multivaraite_simul():
 	plt.show()
 
 def main():
-	# multivaraite_simul()
 	univariate_simul()
 
 if __name__ == '__main__':
