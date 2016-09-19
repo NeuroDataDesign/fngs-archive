@@ -29,6 +29,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from pykalman import KalmanFilter #has smoothing operation
 
 def kalman_em_univariate(y, a, c, q, r, pi, v, max_i = None, tol = None):
 	# access important dimensions
@@ -39,10 +40,10 @@ def kalman_em_univariate(y, a, c, q, r, pi, v, max_i = None, tol = None):
 		tol = .01
 	
 	A = a
-	C = c
+	C = c #U_{p by d} matrix from compact SVD of Y
 	Q = q
-	R = r
-	Pi = pi
+	R = r #should be identity matrix according to paper
+	Pi = pi #0 vector according to paper
 	V = v
 	n = len(y) # number of timesteps
 	i = 1 #iteration
@@ -54,8 +55,11 @@ def kalman_em_univariate(y, a, c, q, r, pi, v, max_i = None, tol = None):
 	while (i <= max_i) and (diff > tol):
 		
 		#E step
+		# update expected values with Kalman filter smoother
 
 		#M step
+
+		#updates
 
 	#how is Sx even initialized?
 	return A, C, Q, R, Pi, V, Sx, lik
