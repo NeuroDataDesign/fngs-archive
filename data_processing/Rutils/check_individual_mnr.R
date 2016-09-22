@@ -25,17 +25,19 @@ source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr
 source('obs2kf.R')
 
 #datasets <- c('NKI', 'BNU1', 'BNU2', 'HNU1', 'DC1')
-datasets <- c('NKI', 'BNU1', 'BNU2')
-outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_822/'
+#datasets <- c('NKI', 'BNU1', 'BNU2')
+datasets <- c('BNU1', 'BNU2')
+outpath <- 'C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/reveal/images/week_913/'
 #kfopts <- c('kf', 'no kf')
 kfopts <- c('no kf')
-scan_pos <- c(2, 3, 3, 3, 3)
+#scan_pos <- c(2, 3, 3, 3, 3)
+scan_pos <- c(3, 3)
 inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirt_v3/'
 
 ## Loading Timeseries --------------------------------------------------------------------------------
 
 atlases <- c('desikan_2mm', 'Talairach_2mm')
-for (at in atlases) {
+for (at in atlases[1]) {
   # dir.create(paste(outpath, at, "/", sep=""))
   for (dataset in datasets) {
     opath <- paste(outpath, dataset, "/", at, "/", sep="") 
