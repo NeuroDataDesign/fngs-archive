@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FNGS 9/5</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background="#000066">
+            <h1>Design Team 0 Slides</h1>
+            <h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNGS pipeline leg overview</h1>
+            <h2>Eric Bridgeford</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Implemented Linear and Quadratic Drift removal (using CPAC methods)</li>
+                <li>Finished a pipeline and analyzed for FNIRT brains (compared ts to kf-ts)</li>
+                <li>Decided AGAINST smoothing</li>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Results for Pipeline</h1>
+            <ul>
+                <li>Note: first version of pipeline implementing FNIRT</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>HNU1, no kalman filter</h1>
+            <img src="images/week_81/HNU_1_no_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>HNU1, kalman filter</h1>
+            <img src="images/week_81/HNU_1_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>NKI, no kalman filter</h1>
+            <img src="images/week_81/NKI_no_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>NKI, kalman filter</h1>
+            <img src="images/week_81/NKI_kf.png" height="400">
+        </section>
+        <section data-background="#000066">
+        <h1>DC1, no kalman filter</h1>
+        <img src="images/week_81/DC_1_no_kf.png" height="400">
+    </section>
+
+        <section data-background="#000066">
+            <h1>DC1, kalman filter</h1>
+            <img src="images/week_81/DC_1_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>BNU1, no kalman filter</h1>
+            <img src="images/week_81/BNU_1_no_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>BNU1, kalman filter</h1>
+            <img src="images/week_81/BNU_1_kf.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>What this Means</h1>
+            <ul>
+                <li>With some randomly chosen DLM, Kalman filtering helps</li>
+                <li>Pessimistic: might not actually work, since this DLM is completely arbitrary</li>
+                <li>Need to find how to optimize the DLM, so that when we filter we are doing it right</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Quality Control for fMRI graphs</h1>
+            <ul>
+                <li>Goal: create a repo for fMRI graphs that demonstrates between-dataset variances</li>
+                <li>Similar to neurodata/dataset-variance, but those metrics don't really apply</li>
+                <li>Decide which metrics to include</li>
+                <li>Want to be able to run all of our discriminability analyses, and adds another layer of benchmarking for each pipeline as we improve</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Things to do this week</h1>
+            <ul>
+                <li>Merge ndmg-master into ndmg-eric-dev</li>
+                <li>Run conversions to binary files from HCP dataset</li>
+                <li>Figure out top n-component extraction for our pipeline</li>
+                <li>Make R style guide and distribute ASAP</li>
+
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Kalman Filter EM Algorithm</h1>
+            <h2>Eric Walker</h2>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>R Markdown</h1>
+            <li><a href="../ewok_weekly/ewok_week_906.html">Link</a> to file</li>
+        </section>
+
+        <!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Sample Webpage for partial brain</h1>
+            <ul>
+                <li><a href = "clarityjs/Fear197.html">Non equalized</a>></li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Sample Webpage for complete brain</h1>
+            <ul>
+                <li><a href = "clarityjs/localeq.html">local histogram equalization</a>></li>
+            </ul>
+        </section>
+
+        
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+</body>
+</html>
