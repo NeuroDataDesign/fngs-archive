@@ -18,17 +18,17 @@
 # Copyright (c) 2016. All rights reserved.
 #
 # a utility to convert timeseries to correlation matrices. 
+# Inputs:
+#   observations[[subs]][timesteps, rois]: a list of observations 
+#                 for a particular subject.
 #
+# OUtputs:
+#   zscore_data[[subs]][timesteps, rois]: the locally z-scored roi timeseries. 
 #
 obs2corr <- function(observations) {
 
-  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])), simplify=FALSE, USE.NAMES=TRUE)
-  
-  # corr_data <- vector("list", length(observations))
-  # names(corr_data) <- names(observations)
-  # for (subject in names(corr_data)) {
-  #   corr_data[[subject]] <- abs(cor(observations[[subject]]))
-  # }
+  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])),
+                      simplify=FALSE, USE.NAMES=TRUE)
   
   return(corr_data)
 }

@@ -1,0 +1,66 @@
+---
+title: "Expectation Maximization of Kalman Filter Parameters"
+author: "Ewok"
+date: "September 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Kalman Filter EM algorithm
+
+The Expectation Maximization algorithm for estimating parameters consists of a two-step process whereby a probability distribution over a weighted set of all possible completions of missing data is guessed using the current estimates of the parameters (E-step) and then this is used to create a new estimate of the parameters by maximizing the expected log-likelihood (M-step). These steps are repeated in an alternating fashion until the difference between the new estimates and the previous estimates falls below a specified threshold.
+
+The following is an outline of relevant information within "An M-Estimator for Reduced-Rank High-Dimensional Linear Dynamical System Identification" by Shaojie Chen, et al. found [here](http://arxiv.org/pdf/1509.03927v1.pdf).
+
+The goal is to create an implementation of the Expectation Maximization algorithm that generates a maximum likelihood estimate of the parameters used in the Kalman Filter given a specified tolerance. This process is known as _system identification_.
+
+We begin with the following standard model:
+
+$$x_{t+1} = Ax_{t}+Y_{t}^{'},\qquad Y_{t}^{'}\sim N(0,Q),\qquad x_0\sim N(\pi_0,V_0)$$
+$$y_t = Cx_t+v_t,\qquad v_t\sim N(0,R)$$
+
+where $A$ is the $d\times d$ state transition matrix, $C$ is the $p\times d$ generative matrix, $x_t$ is a $d\times 1$ vector, $y_t$ is a $p\times 1$ vector, $R$ is the $p\times p$ output noise covariance, $Q$ is the $d\times d$ state noise covariance, $\pi_0$ is the $d\times 1$ initial state mean, and $V_0$ is the $d\times d$ covariance.
+
+We then apply the following constraints:  
+
+1) $Q$ is the identity matrix  
+2) the ordering of the columns of $C$ is fixed based on their norms  
+3) $V_0 = \textbf{0}$  
+4) $R$ is a diagonal matrix  
+5) $A$ is sparse  
+6) $C$ has smooth columns  
+
+We now have the following model:
+
+$$x_{t+1} = Ax_{t}+Y_{t}^{'},\qquad Y_{t}^{'}\sim N(0,I),\qquad x_0=\pi_0$$
+$$y_t = Cx_t+v_t,\qquad v_t\sim N(0,R)$$
+
+And we now let $\theta=\{A,C,R,\pi_0\}$ represent all unknown parameters giving us the following optimization problem:
+$$\hat{\theta}=argmin_{\theta}\{-log P_{\theta}(\textbf{X},\textbf{Y})+\lambda_1\lVert A\rVert_1+\lambda_2\lVert C\rVert_2^2\}$$
+where $\lambda_1$ and $\lambda_2$ are tuning parameters and $\lVert \blacksquare \rVert_p$ represents the $p$-norm of a vector.
+
+Now given some observed outputs $\textbf{Y}=(y_1,...,y_T)$ we want to find the parameters $\theta=\{A,C,R,\pi_0\}$ that maximize the likelihood of the observed data.
+
+There are two main steps to the EM algorithm, the E step and the M step. However, we must first initialize the parameters $A,C,R,\pi_0$. The $R$ matrix is initialized as the identity matrix while $pi_0$ is initialized as $\vec{0}$. For $A$ and $C$, we first find the singular value decomposition of $\textbf{Y}$, which is $\textbf{Y}=UDV^T = U_{p\times d}X_{d\times T}$, where $U_{p\times d}$ is the first $d$ columns of $U$. $C$ is then initialized to $U_{p\times d}$, while the columns of $X_{d\times T}$ are used as input for a VAR model to estimate the initial value of $A$. From here, we can proceed with the algorithm.
+
+### E Step
+For the E step, we must compute the expected log likelihood $\Gamma = E[log P(\textbf{X},\textbf{Y}|\textbf{Y})]$, which depends on the following three expectations:
+$$E[x_t|\textbf{Y}]=\hat{x}_{t|T}$$
+$$E[x_tx_t^T|\textbf{Y}]=P_{t|T}+\hat{x}_{t|T}\hat{x}_{t|T}^T$$
+$$E[x_tx_{t-1}^T|\textbf{Y}]=\hat{x}_{t|t}\hat{x}_{t+1|T}^T+L_t(P_{t+1|T}+(\hat{x}_{t+1|T}-\hat{x}_{t+1|t})\hat{x}_{t+1|T}^T)$$ where $L_t=P_{t|t}A^TP_{t+1|t}^{-1}$.
+
+### M Step
+Given $\theta^{old}=\{A^{old},C^{old},R^{old},\pi_0^{old}\}$ we must make new estimates denoted $\theta^{new}=\{A^{new},C^{new},R^{new},\pi_0^{new}\}$. We use the following equations:
+$$R^{new}=diag\{\frac{1}{T}\sum_{t=1}^T(y_ty_t^T-C\hat{x}_ty_t^T)\}$$
+$$\pi_0^{new}=\hat{x}_0$$
+We vectorize $C^{old}$ as $c^{old}=(C_{11}^{old},...,C_{1d}^{old},C_{21}^{old},...,C_{2d}^{old},C_{p1}^{old},...,C_{pd}^{old})^T$ where $C_{ij}$ is the element at row i and column j of $C$. Then let $\textbf{Y}^{'}=(y_{11},...,y_{T1},...,y_{12},...,y_{T2},...,y_{1p},...,y_{Tp})^T$ be a $Tp\times 1$ vector. Also, let $\textbf{X}^{'}=\begin{pmatrix}\textbf{X}^T & & \\ & \ddots & \\ & & \textbf{X}^T\end{pmatrix}_{pT\times pd}$. Now $c^{new}=(\textbf{X}^{'T}\textbf{X}^{'}+\lambda_2\textbf{I})^{-1}\textbf{X}^{'T}\textbf{Y}^{'}$ and rearrange $c^{new}$ according to the same format as $c^{old}$ to attain $C^{new}$.
+Finally we let $z$ be a $Td\times 1$ vector obtained by rearranging $\textbf{X}$ and $\textbf{Z}$ is a block diagonal matrix with diagonal component $Z^T=(x_0,...,x_{T-1})^T$. We can solve numerically via a Fast Iterative Shrinkage-Thresholding Algorithm (FISTA). Thus, $$A^{new}=FISTA(\lVert \textbf{Z}^Ta^{old}-z\rVert_2^2, \lambda_1)$$.
+
+The algorithm is completed and the process stops when the difference between the estimations of the current step and the previous step is less than the specified tolerance.
+
+## Goals for next week
+
+Create an implementation of the Kalman Filter EM algorithm in R along with examples and present in an R Markdown file.

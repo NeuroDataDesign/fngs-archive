@@ -22,15 +22,13 @@
 #
 obs2kf <- function(observations) {
   require('dlm')
-  kf_data <- list()
-  subjects <- names(observations)
-  
+
   dlm = dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)
   
-  for (subject in subjects) {
-    flt <- dlmFilter(observations[[subject]], dlm)$m
-    kf_data[[subject]] <- array(flt[2:length(flt)], dim=dim(observations[[subject]]))
-  }
+  kf_data <- sapply(names(observations),  function(x) {
+    flt <- dlmFilter(observations[[x]], dlm)$m
+    array(flt[2:length(flt)], dim=dim(observations[[x]]))
+  }, simplify=FALSE, USE.NAMES=TRUE)
   
   return(kf_data)
 }

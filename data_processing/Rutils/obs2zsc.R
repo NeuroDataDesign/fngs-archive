@@ -19,14 +19,17 @@
 #
 # a utility to convert signal information to z-scores
 #
+# Inputs:
+#   observations[[subs]][timesteps, rois]: a list of observations 
+#                 for a particular subject.
 #
-signal2zscore <- function(signal_data) {
-  zscore_data <- list()
-  subjects <- names(signal_data)
-  
-  for (subject in subjects) {
-    zscore_data[[subject]] <- t(scale(t(signal_data[[subject]]), center=TRUE, scale=TRUE))
-  }
-  
+# OUtputs:
+#   zscore_data[[subs]][timesteps, rois]: the locally z-scored roi timeseries. 
+#
+#
+obs2zsc <- function(observations) {
+
+  zscore_data <- sapply(names(observations),  function(x) scale(observations[[x]], center=TRUE, scale=TRUE),
+                        simplify=FALSE, USE.NAMES=TRUE)
   return(zscore_data)
 }

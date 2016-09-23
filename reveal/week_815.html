@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FNGS 8/15</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background="#000066">
+            <h1>Design Team 0 Slides</h1>
+            <h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNGS pipeline leg overview</h1>
+            <h2>Eric Bridgeford</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Massive memory issue fixed</li>
+                <li>Multivariate GMM exploration</li>
+                <li>Lots of analyzed graphs/mnr statistics</li>
+                <li>Redid all memory-related code to reflect more consistent understanding of analysis</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Memory Related issue</h2>
+            <ul>
+                <li>Problem: running large scale analysis was leading to HUGE memory problems</li>
+                <li>Python fails to effectively clean itself up when dealing with very large jobs</li>
+                <li>Never became a problem previously, because Greg uses bash scripts (termination at python session conclusion automatically frees memory)</li>
+                <li>Primary offender: matplotlib leaves artifacts ALL OVER THE PLACE</li>
+                <li>If anybody has memory issues relating to python scripts, I spent a long time debugging and can help ffr</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Solving Memory Issues</h2>
+            <ul>
+                <li>Multiprocessing module in python</li>
+                <li>Allows for creation of external sessions for individual function calls, perfect for our usage</li>
+                <li>IE, spawn individual sessions that automatically free their own memory at termination, instead of crappy python garbage collector</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Serial Performance</h2>
+            <ul>
+                <li>Running jobs serially leads to consistent memory usage (3 subjects run serially here)</li>
+                <img src="images/week_815/fngs_mem_3sub.png" height="400">
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Trivial to Upscale</h2>
+            <ul>
+                <li>running jobs in parallel (30 scans shown here), can easily just spawn processes and stagger</li>
+                <li>Could write something to automatically do this very simply</li>
+                <img src="images/week_815/mem_parallel.png" height="400">
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>New Data analyzed</h2>
+            <ul>
+                <li>Data analyzed with the version of the pipeline shown 2 weeks ago</li>
+                <li>Comparisons are to same pipeline, without linear and quadratic drift removal (top) and with (bottom)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>NKI, desikan</h2>
+            <img src="images/week_81/NKI_no_kf.png" height="250">
+            <img src="images/week_815/NKI_no kf_desikan_2mm.png" height="250">
+        </section>
+
+        <section data-background="#000066">
+            <h2>BNU1, desikan</h2>
+            <img src="images/week_81/BNU_1_no_kf.png" height="300">
+            <img src="images/week_815/BNU1_no kf_desikan_2mm.png" height="250">
+        </section>
+
+        <section data-background="#000066">
+            <h2>BNU2, desikan</h2>
+            <img src="images/week_815/BNU2_no kf_desikan_2mm.png" height="250">
+        </section>
+
+        <section data-background="#000066">
+            <h2>DC1, desikan</h2>
+            <img src="images/week_81/DC_1_no_kf.png" height="250">
+            <img src="images/week_815/DC1_no kf_desikan_2mm.png" height="250">
+        </section>
+
+        <section data-background="#000066">
+            <h2>HNU1, desikan</h2>
+            <img src="images/week_81/HNU_1_no_kf.png" height="250">
+            <img src="images/week_815/HNU1_no kf_desikan_2mm.png" height="250">
+        </section>
+
+        <section data-background="#000066">
+            <h2>Atlas Choice</h2>
+            <img src="images/week_815/mnrs.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Comments</h1>
+            <ul>
+                <li>Pipeline looks awesome; mnrs are consistently great</li>
+                <li>Benchmark against CPAC head to head this week for benchmark datasets?</li>
+                <li>Direct comparison of mnrs, graphs produced, and memory information/runtime</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>This week</h1>
+            <li><a href="pdfs/memory_progress_815.pdf">Link</a> to R Markdown PDF summary (repo private, so cannot link directly)</li>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Things to do this week</h1>
+            <ul>
+                <li>finish fMRI variance repo</li>
+                <li>write my own GMM code and test</li>
+                <li>Do lots of ML tutorials</li>vitami
+                <li>use EM for estimating covariance matrices of sources for conditions given our input vec</li>
+                <li>studying for GREs</li>
+            </ul>
+        </section>
+
+	<!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Univariate Kalman Filter and Smoother</h1>
+            <h2>Eric Walker</h2>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>This week</h1>
+            <li><a href="../ewok_weekly/ewok_week_815.html">Link</a> to R Markdown</li>
+        </section>
+
+        <!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Accomplished this week</h3>
+            <ul>
+                <li>Developed code to test histogram equalization of slice by slice (useless as I'll explain later)</li>
+                <li>Developed new sampling method that doesn't require the Clarity API</li>
+                <li>Developed Code to sum the histograms of a 3D cube based off of Alex's code</li>
+                <li>Tested different subsamples and subsampling methods</li>
+                <li>Tested IBM Watson visualization</li>
+                <li>Created NeuroCV github repo</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Iterative Histograms</h3>
+            <ul>
+                <li>Last week I found the histogram equalization of each slice and combined the slices</li>
+                <li>This is improper technique as we are trying to find the histogram equalization of the whole volume not separate slices</li>
+                <li>Iterative histograms is a different technique where you find the array dimensions and iteratively add the histograms accross the x y z axis</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Challenges</h3>
+            <ul>
+                <li>Iterative histograms are even more GPU intensive than slice by slice equalization</li>
+                <li>Wasted a lot of time trying to downsample data to run the code on my 3GB laptop</li>
+                <li>Clarity API and other packages difficult to install on linux</li>
+                <li>A deeply subsampled (9, 6, 11) cube took several hours to process with Cortex's 18GB RAM</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Challenges part 2</h3>
+            <ul>
+                <li>After sampling an memap is created - this means nibabel is rendered useless for manipulations and I cannot convert back to .nii</li>
+                <li>Due to my lack of understanding of interpolation my code might be deeply flawed</li>
+                <li>Tried some manipulations with the Clarity API specifically with trying to turn the sampled array from into a nibabel friendly form however because nifti format is rather finicky when converting from array to nifti (at least with nibabel)</li>
+                <li>In process of investigating alternative python based nifti image manipulation suites</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Sampling Methods</h3>
+            <ul>
+                <li>Random sampling with number generator (unreliable and ultimately uninformative)</li>
+                <li>Proportional representation based on bin numbers (Difficult to implement in practice)</li>
+                <li>Interpolation based estimation (Best method)</li>
+                <li>Important consideration - Level 5 downsampling represents the greatest downsampled data available on the Neurodata server, additional downsamples are thus inherently unreliable</li>
+            </ul>
+        </section>
+
+
+        <section data-background="#000066">
+            <h3>Interpolation based estimation</h3>
+            <ul>
+                <li>Interpolation is the art of constructing new data points within a discrete range</li>
+                <li>A very crude definition is "curve fitting" based on simple functions</li>
+                <li>Similar to regression there is linear, exponential, etc.</li>
+                <li>Experimented around however due to the lack of availability of a "check" model, I just chose to go with linear interpolation because it's the fastest</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Interpolation based estimations pt 2</h3>
+            <ul>
+                <li>What is the difference between sampling using interpolation of the zoom of an N size matrix and a simple downcale of the local mean</li>
+                <li>Does higher order interpolation matter for our case</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Logic of iterated histograms</h3>
+            <ul>
+                <li>Take cube of data</li>
+                <li>Find the dimensions thus creating your range parameters</li>
+                <li>Sample using linear interpolation</li>
+                <li>Over the sampled dimensions find the non zero points and iteratively add the histograms</li>
+                <li>Construct the iterated histogram</li>
+                <li>Normalize using basic histogram normalization</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Issues still in the progress</h3>
+            <ul>
+                <li>My method of converting back to a form involves creating an array of zeros based on the histogram of the data</li>
+                <li>Next I use 32 as the bin size and divide each cell of the histogram by the hist_sum value</li>
+                <li>I save the result as a csv file - however since I converted the 3D array into what is essentially a 2D representation of the histogram how do I convert back to either a 3D form</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Steps taken to solve these problems</h3>
+            <ul>
+                <li>Contacted the major clusters on campus - IDIES, MARCC, HPCC and asked if I could use a node of their cluster for free - No</li>
+                <li>Constructed a small 3D array and tried the manipulations I was using - currently using results to help me debug</li>
+                <li>Concern: Even a 2x2x2 (smallest reasonable volume) requires several hours to process</li>
+                <li>Write it in C code? - probably not best use</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>NeuroCV Repo</h3>
+            <ul>
+                <li>Stored Histogram equalization notes and all the various histogram equalization methods I've tested</li>
+                <li>A lot of code is not included because it requires nifti raw data files which Github does not provide space for - I'll create pointers using Git lfs, but my cortex account has all the necessary files as well</li>
+                <li>Jupyter notebook is partially filled out, but I need to figure out how to outsource the code - is there a nohup command for jupyter notebook? (To avoid hogging cortex for 12+ hours)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>NeuroCV Repo</h3>
+            <ul>
+                <li><a href = "https://github.com/alee156/NeuroCV">Repo</a></li>
+                <li><a href = "https://github.com/alee156/NeuroCV/blob/master/arraytest.py">Code for debug</a></li>
+            </ul>
+        </section>
+        
+        <section data-background="#000066">
+            <h3>Next week</h3>
+            <ul>
+                <li>Find way to prove my histogram equalization works - Problem: There are no 3D examples of histogram equalization on the web so difficult to prove</li>
+                <li>Find way to improve processing time</li>
+                <li>Ask Jovo for more stuff</li>
+            </ul>
+        </section>
+
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				math: {
+                    mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+                },
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/math/math.js', async: true },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+</body>
+</html>

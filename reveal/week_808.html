@@ -1,0 +1,387 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FNGS 8/8</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background="#000066">
+            <h1>Design Team 0 Slides</h1>
+            <h2>Eric Bridgeford, Albert Lee, Eric Walker</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>FNGS pipeline leg overview</h1>
+            <h2>Eric Bridgeford</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Week's Accomplishments</h1>
+            <ul>
+                <li>Merged ndmg-master into ndmg-eric-dev</li>
+                <li>Multivariate Normal Exploration</li>
+                <li>Added linear and quadratic drift removal to pipeline</li>
+                <li>Created R style guide (if you use R, check this out before writing anything, it's pretty brief)</li>
+                <li>Built awesome QSub utility for easy cmd line BC1 job submission</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Results for Pipeline</h1>
+            <ul>
+                <li>Note: first version of pipeline implementing both linear and quadratic drift removal</li>
+                <li>Also: removed kalman filtering until we know we have the parameters estimated properly</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>NKI, desikan atlas</h1>
+            <img src="images/week_88/NKI_no kf_desikan_2mm.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>NKI, Talairach 2mm</h1>
+            <img src="images/week_88/NKI_no kf_Talairach_2mm.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Comments</h1>
+            <ul>
+                <li>Pipeline looks very good, time to run on more data</li>
+                <li>There isn't really much left to add</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>QSub Issues</h1>
+            <ul>
+                <li>Ran into issue where I wanted to use BC1, but couldn't effectively submit 1000 jobs without LONI</li>
+                <li>Will advised that it would be awesome to have a command line tool to do it for us</li>
+                <li>Created qsub utility for braincloud <a href="https://github.com/ebridge2/qsub_braincloud">qsub repo</a></li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h2>Multivariate Gaussian Exploration</h2>
+            <ul>
+                <li><a href="https://github.com/neurodata/memory/blob/master/status/gaussian_mle.pdf">PDF version</a></li>
+                <li>Have some k-dimensional multivariate distribution with mean $\mu$ and cov $\Sigma$</li>
+            </ul>
+            $$	 f(x \vert \mu, \Sigma) = \frac{1}{{2\pi}^{\frac{p}{2}}|\Sigma|^{\frac{1}{2}}}exp\Bigg (-\frac{1}{2}(x - \mu)^T\Sigma^{-1}(x - \mu)\Bigg )$$
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Follows that we have the log-likelihood function:</li>
+            </ul>
+            $$l(x) = K + N ln(|\Sigma|) + \sum_{i=1}^{N}(x_i - \mu)^T\Sigma^{-1}(x_i - \mu)$$
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Estimator of mean: $\hat{\mu}= \frac{1}{N}\sum_{i=1}^Nx_i$</li>
+                <li>Estimator of Covariance: $\hat{\Sigma} = \frac{1}{N}\sum_{i=1}^N(x_i-\mu)(x_i-\mu)^T$</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Experiment</h1>
+            <ul>
+                <li>Draw a population of 1000 items with $\mu = [2, 5]$ and $\Sigma = [4, 1; 1, 3]$</li>
+            </ul>
+            <img src="images/week_88/pop.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Use MLE formula derived above, receive estimators</li>
+                <li>$\hat{\mu} = [2.004098, 4.965075]$</li>
+                <li>$\hat{\Sigma} = [4.026957, 1.057485; 1.057485, 3.077138]$</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <ul>
+                <li>Plot our confidence interval for the estimated gaussian</li>
+            </ul>
+            <img src="images/week_88/est.png" height="400">
+        </section>
+
+        <section data-background="#000066">
+            <h1>Things to do this week</h1>
+            <ul>
+                <li>make fMRI graph variance repo</li>
+                <li>do gaussian mixture experiments (?)</li>
+                <li>run pipeline on lots of data and make spreadsheet of results</li>
+                <li>Meet with greg for merging eric-dev to master</li>
+                <li>Start studying for GREs</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Autoregression on Timeseries</h1>
+            <h2>Eric Walker</h2>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>This week</h1>
+            <ul>
+                <li><a href="http://upward-spiral-science.github.io/fngs/reveal/week_81.html#/15">Last week's slides</a></li>
+                <li>Tried different parameters for Kalman filter and examined effects</li>
+            </ul>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Default parameters</h1>
+            <img src="../ewok_weekly/AR(1)_KF_default.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)</li>
+            <li>R^2 = -7.56</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>MLE</h1>
+            <img src="../ewok_weekly/AR(1)_KF_MLE.jpeg" height="400">
+            <li>dlm(FF=0.3039547, GG=2.7184272, V=2.6155451, W=0.7186114, m0=0.4027390, C0=0.6656987)</li>
+            <li>R^2 = -3.75</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>Best R^2</h1>
+            <img src="../ewok_weekly/AR(1)_KF_lowest.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=300, m0=0, C0=1e7)</li>
+            <li>R^2 = -2.50</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) KF default</h1>
+            <img src="../ewok_weekly/AR(0)_kf.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) MLE</h1>
+            <img src="../ewok_weekly/AR(0)_kf_mle.jpeg" height="400">
+            <li>dlm(FF=0.3039547, GG=2.7184272, V=2.6155451, W=0.7186114, m0=0.4027390, C0=0.6656987)</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(0) best R^2</h1>
+            <img src="../ewok_weekly/AR(0)_kf_lowest.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=300, m0=0, C0=1e7)</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) KF default</h1>
+            <img src="../ewok_weekly/AR(1)_kf.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=0.1, m0=0, C0=1e7)</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) MLE</h1>
+            <img src="../ewok_weekly/AR(1)_kf_mle_d.jpeg" height="400">
+            <li>dlm(FF=0.3039547, GG=2.7184272, V=2.6155451, W=0.7186114, m0=0.4027390, C0=0.6656987)</li>
+        </section>
+        
+        <section data-background="#000066">
+            <h1>AR(1) best R^2</h1>
+            <img src="../ewok_weekly/AR(1)_kf_lowest_d.jpeg" height="400">
+            <li>dlm(FF=1, GG=1, V=0.8, W=300, m0=0, C0=1e7)</li>
+        </section>
+
+        <section data-background="#000066">
+            <h1>Thoughts</h1>
+            <ul>
+                <li>Need better prediction model</li>
+                <li>Default KF params smoothed the most visually</li>
+                <li>Better R^2 value only caused by scattered points</li>
+            </ul>
+        </section>
+        
+        
+        
+
+        <!-- Divider -->
+
+        <section data-background="#000066">
+            <h1>Javascript Image Analysis</h1>
+            <h2>Albert Lee</h2>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Accomplished this week</h3>
+            <ul>
+                <li>Developed code to test histogram equalization of slice by slice (useless as I'll explain later)</li>
+                <li>Developed new sampling method that doesn't require the Clarity API</li>
+                <li>Developed Code to sum the histograms of a 3D cube based off of Alex's code</li>
+                <li>Tested different subsamples and subsampling methods</li>
+                <li>Tested IBM Watson visualization</li>
+                <li>Created NeuroCV github repo</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Iterative Histograms</h3>
+            <ul>
+                <li>Last week I found the histogram equalization of each slice and combined the slices</li>
+                <li>This is improper technique as we are trying to find the histogram equalization of the whole volume not separate slices</li>
+                <li>Iterative histograms is a different technique where you find the array dimensions and iteratively add the histograms accross the x y z axis</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Challenges</h3>
+            <ul>
+                <li>Iterative histograms are even more GPU intensive than slice by slice equalization</li>
+                <li>Wasted a lot of time trying to downsample data to run the code on my 3GB laptop</li>
+                <li>Clarity API and other packages difficult to install on linux</li>
+                <li>A deeply subsampled (9, 6, 11) cube took several hours to process with Cortex's 18GB RAM</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Challenges part 2</h3>
+            <ul>
+                <li>After sampling an memap is created - this means nibabel is rendered useless for manipulations and I cannot convert back to .nii</li>
+                <li>Due to my lack of understanding of interpolation my code might be deeply flawed</li>
+                <li>Tried some manipulations with the Clarity API specifically with trying to turn the sampled array from into a nibabel friendly form however because nifti format is rather finicky when converting from array to nifti (at least with nibabel)</li>
+                <li>In process of investigating alternative python based nifti image manipulation suites</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Sampling Methods</h3>
+            <ul>
+                <li>Random sampling with number generator (unreliable and ultimately uninformative)</li>
+                <li>Proportional representation based on bin numbers (Difficult to implement in practice)</li>
+                <li>Interpolation based estimation (Best method)</li>
+                <li>Important consideration - Level 5 downsampling represents the greatest downsampled data available on the Neurodata server, additional downsamples are thus inherently unreliable</li>
+            </ul>
+        </section>
+
+
+        <section data-background="#000066">
+            <h3>Interpolation based estimation</h3>
+            <ul>
+                <li>Interpolation is the art of constructing new data points within a discrete range</li>
+                <li>A very crude definition is "curve fitting" based on simple functions</li>
+                <li>Similar to regression there is linear, exponential, etc.</li>
+                <li>Experimented around however due to the lack of availability of a "check" model, I just chose to go with linear interpolation because it's the fastest</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Interpolation based estimations pt 2</h3>
+            <ul>
+                <li>What is the difference between sampling using interpolation of the zoom of an N size matrix and a simple downcale of the local mean</li>
+                <li>Does higher order interpolation matter for our case</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Logic of iterated histograms</h3>
+            <ul>
+                <li>Take cube of data</li>
+                <li>Find the dimensions thus creating your range parameters</li>
+                <li>Sample using linear interpolation</li>
+                <li>Over the sampled dimensions find the non zero points and iteratively add the histograms</li>
+                <li>Construct the iterated histogram</li>
+                <li>Normalize using basic histogram normalization</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Issues still in the progress</h3>
+            <ul>
+                <li>My method of converting back to a form involves creating an array of zeros based on the histogram of the data</li>
+                <li>Next I use 32 as the bin size and divide each cell of the histogram by the hist_sum value</li>
+                <li>I save the result as a csv file - however since I converted the 3D array into what is essentially a 2D representation of the histogram how do I convert back to either a 3D form</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>Steps taken to solve these problems</h3>
+            <ul>
+                <li>Contacted the major clusters on campus - IDIES, MARCC, HPCC and asked if I could use a node of their cluster for free - No</li>
+                <li>Constructed a small 3D array and tried the manipulations I was using - currently using results to help me debug</li>
+                <li>Concern: Even a 2x2x2 (smallest reasonable volume) requires several hours to process</li>
+                <li>Write it in C code? - probably not best use</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>NeuroCV Repo</h3>
+            <ul>
+                <li>Stored Histogram equalization notes and all the various histogram equalization methods I've tested</li>
+                <li>A lot of code is not included because it requires nifti raw data files which Github does not provide space for - I'll create pointers using Git lfs, but my cortex account has all the necessary files as well</li>
+                <li>Jupyter notebook is partially filled out, but I need to figure out how to outsource the code - is there a nohup command for jupyter notebook? (To avoid hogging cortex for 12+ hours)</li>
+            </ul>
+        </section>
+
+        <section data-background="#000066">
+            <h3>NeuroCV Repo</h3>
+            <ul>
+                <li><a href = "https://github.com/alee156/NeuroCV">Repo</a></li>
+                <li><a href = "https://github.com/alee156/NeuroCV/blob/master/arraytest.py">Code for debug</a></li>
+            </ul>
+        </section>
+        
+        <section data-background="#000066">
+            <h3>Next week</h3>
+            <ul>
+                <li>Find way to prove my histogram equalization works - Problem: There are no 3D examples of histogram equalization on the web so difficult to prove</li>
+                <li>Find way to improve processing time</li>
+                <li>Ask Jovo for more stuff</li>
+            </ul>
+        </section>
+
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				math: {
+                    mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+                },
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/math/math.js', async: true },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+</body>
+</html>
