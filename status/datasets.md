@@ -14,4 +14,5 @@
 |[SWU1](http://fcon_1000.projects.nitrc.org/indi/CoRR/html/swu_1.html) | | | | | | | | | |
 |[UM](http://fcon_1000.projects.nitrc.org/indi/CoRR/html/um_1.html) | | | | | | | | | | |
 |[UWM](http://fcon_1000.projects.nitrc.org/indi/CoRR/html/uwm_1.html) | | | | | | || | | 
+|IPCAS |  | | | | | | || | | 
 |[XHCUMS](http://fcon_1000.projects.nitrc.org/indi/CoRR/html/xhcums_1.html) | Siemans TrioTim | 3D MPRAGE | (I assume EPI) | | | 30 | 3000 | 3 x 3 x 3 |
