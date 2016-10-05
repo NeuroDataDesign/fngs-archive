@@ -1,0 +1,83 @@
+---
+title: "ewok_week_926"
+author: "Ewok"
+date: "September 26, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Normal EM algorithm
+
+```{r norm_em}
+# norm_em.R
+# Created by Ewok on 2016-09-25
+# Email: ewalke31@jhu.edu
+#
+# An implementation of a normal Expectation Maximization algorithm.
+#
+# Inputs:
+#   y - initial values
+#   mu_i - initial mean
+#   var_i - initial variance
+#   tol - minimum difference between iterations before cut-off
+#   max_i - maximum number of iterations before cut-off
+#
+norm_em <- function(y, mu_i, var_i, tol=0.01, max_i=100) {
+  
+  y_obs <- y[!is.na(y)]
+  y_mis <- y[is.na(y)]
+  n <- length(y)
+  r <- length(y_obs)
+  mu <- mu_i
+  var <- var_i
+  ll = likelihood(y_obs, mu, var, n)
+  
+  i <- 0
+  converge = FALSE
+  while (i <= max_i && !isTRUE(converge)) {
+    e_y <- sum(y_obs) + (n-r) * mu
+    e_ysq <- sum(y_obs^2) + (n-r) * (mu^2 + var)
+    mu_new <- e_y / n
+    var_new <- e_ysq / n - mu_new^2
+    mu <- mu_new
+    var <- var_new
+    ll_new <- likelihood(y_obs, mu, var, n)
+    cat(mu, var, ll_new, "\n")
+    if (isTRUE(abs(ll - ll_new) < tol)) {
+      converge <- TRUE
+    } else {
+      ll <- ll_new
+      i <- i + 1
+    }
+  }
+  return(c(mu, var))
+}
+
+# log likelihood function
+likelihood <- function(y, mu, sigma_sq, n) {
+  -0.5*n*log(2*pi*sigma_sq)-0.5*sum((y-mu)^2)/sigma_sq
+}
+```
+
+Now let's look at an example:
+
+```{r ex}
+y <- rnorm(100, mean=10, sd=1)      # Normal dist. w/ 100 values
+hist(y, main=expression(paste("y ~ N(", mu, "=10, ", sigma, "=1)")), col="blue", breaks=10)
+mask <- ceiling(runif(20, 0, 100))  # 20 random ints in range 0-100
+y[mask] <- NA                       # Creates missing vals in y
+hist(y, main=expression(paste("y ~ N(", mu, "=10, ", sigma, "=1) w/ values missing")), col="blue", breaks=10)
+norm_em(y, 0, 0)                    # Guess mean = 0 and sd = 0
+```
+
+```{r ex2}
+y <- rnorm(1000, mean=0, sd=100)      # Normal dist. w/ 1000 values
+hist(y, main=expression(paste("y ~ N(", mu, "=0, ", sigma, "=100)")), col="green", breaks=30)
+mask <- ceiling(runif(750, 0, 1000))  # 750 random ints in range 0-1000
+y[mask] <- NA                         # Creates missing vals in y
+hist(y, main=expression(paste("y ~ N(", mu, "=0, ", sigma, "=100) w/ values missing")), col="green", breaks=30)
+norm_em(y, 0, 0, 1e-9)                      # Guess mean = 0 and sd = 0
+```

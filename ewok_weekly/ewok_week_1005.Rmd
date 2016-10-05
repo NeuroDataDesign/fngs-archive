@@ -1,0 +1,239 @@
+---
+title: "ewok_week_1005"
+author: "Ewok"
+date: "October 5, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+## FNGS Tutorial
+
+I followed Eric's tutorial found [here](https://github.com/neurodata/ndmg/blob/eric-dev-merge/examples/fngs_tutorial.ipynb) to utilize the fngs pipeline. Operating on the SWU_1 dataset, I produced rds files and generated correlation matrix and PKDE plots with the below code that I had previously developed:
+
+```{r rds2mnr, warning=FALSE, message=FALSE, fig.width=15, fig.height=7}
+
+rds2mnr <- function(filepath) {
+  
+  require(ggplot2)
+  require(reshape2)
+  source('C:/Users/Eric/Documents/Github/fngs/data_processing/Rutils/open_timeseries.R')
+  source('C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/hell_dist.R')
+  source('C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R')
+  source('C:/Users/Eric/Documents/R/prod_pkde.R')
+  source('C:/Users/Eric/Documents/R/multiplot.R')
+  
+  fnames = list.files(filepath, pattern="\\.rds", full.names=TRUE)
+  parsed = open_timeseries(fnames, scan_pos=3)
+  ids = parsed[[2]]
+  parsed = parsed[[1]]
+
+  numSubs = length(parsed)
+  numROIs = dim(parsed[[1]])[1]
+  numTime = dim(parsed[[1]])[2]
+  # timestep x roi x subject
+  wgraphs = array(dim=c(numTime, numROIs, numSubs))
+  for(i in 1:numSubs) {wgraphs[,,i] <- t(parsed[[i]][1:numROIs, 1:numTime])}
+  
+  corr = array(dim=c(numROIs, numROIs, numSubs))
+  for (i in 1:numSubs) {corr[,,i] = cor(wgraphs[,,i])}
+  dist = distance(corr)
+  m = mnr(rdf(dist, ids))
+  pdist <- ggplot(melt(dist), aes(x=Var2, y=Var1, fill=value)) + geom_tile(color="white") +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") + labs(x="Scan", y="Scan", title="Correlation Matrix")
+  pkde = prod_pkde(dist, ids)
+  multiplot(pdist, pkde, cols=2)
+  print(paste("mnr = ", m))
+}
+
+rds2mnr('C:/Users/Eric/Documents/R/desikan')
+```
+
+
+## EM KF Update
+
+```{r kfsu, include=FALSE}
+KFSu <- function(A,C,Q,R,x0,v0,y) {
+  
+  T=length(y)
+  Fv1=vector(,T)
+  Fv2=vector(,T)
+  Fx1=vector(,T)
+  Fx2=vector(,T)
+  Sx=vector(,T)
+  Sv=vector(,T)
+  Scov=vector(,T)
+  
+  CRC = C * (1/R) * C
+  
+  # Filter
+  for (t in 1:T) {
+    if (t==1) {
+      Fv1[t]=v0-(v0*CRC*v0 - v0*CRC*1/((1/v0)+CRC)*CRC*v0)
+      Fv2[t]=A*Fv1[t]*A+Q
+      Fx1[t]=x0+v0*C*(1/R)*(y[t]-C*x0)-v0*CRC*1/((1/v0)+CRC)*C*(1/R)*(y[t]-C*x0)
+      Fx2[t]=A*Fx1[t]
+    } else {
+      v2=Fv2[t-1]
+      Fv1[t]=v2-v2*CRC*v2+v2*CRC*1/((1/v2)+CRC)*CRC*v2
+      Fv2[t]=A*Fv1[t]*A+Q
+      x2=Fx2[t-1]
+      Fx1[t]=x2+v2*C*(1/R)*(y[t]-C*x2)-v2*CRC*1/((1/v2)+CRC)*C*(1/R)*(y[t]-C*x2)
+      Fx2[t]=A*Fx1[t]
+    }
+  }
+  
+  # Smoother
+  for (i in 1:T) {
+    t=T-i+1
+    if (t==T) {
+      Sv[t]=Fv1[t]
+      Jt=Fv1[t]*A/(Fv2[t])
+      Scov[t]=Fv2[t]*Jt
+      Sx[t]=Fx1[t]+Jt*(Fx2[t]-A*Fx1[t])
+    } else {
+      Jt=Fv1[t]*A/(Fv2[t])
+      Sv[t]=Fv1[t]+Jt*(Sv[t+1]-Fv2[t])*Jt
+      Scov[t]=Sv[t+1]*Jt
+      Sx[t]=Fx1[t]+Jt*(Sx[t+1]-A*Fx1[t])
+    }
+  }
+  return(list(Fv1=Fv1,Fv2=Fv2,Fx1=Fx1,Fx2=Fx2,Sx=Sx,Sv=Sv,Scov=Scov))
+}
+```
+
+```{r emkf}
+kalman_uni_em <- function(y, a, c, q, r, pi, v, max_i=20, tol=0.01) {
+  
+  A <- a
+  C <- c
+  Q <- q
+  R <- r
+  Pi <- pi
+  V <- v
+  n <- length(y)  # number of timesteps
+  i <- 1  # iteration
+  diff <- 1  # difference between iterations
+  Pt <- vector(, n)
+  Ptt_1 <- vector(, n-1)
+  #lik <- vector(, max_i)
+  
+  while (i <= max_i && diff > tol) {
+    
+    print(R)
+    #  E Step:
+    s <- KFSu(A, C, Q, R, Pi, V, y)
+    for (t in 1:n) {
+      Pt[t] <- s$Sv[t]+s$Sx[t]*s$Sx[t]
+      if (t != n) {
+        Ptt_1[t] <- s$Scov[t]+s$Sx[t+1]*s$Sx[t]
+      }
+    }
+    #like = (n/2)*log(1/Q)-0.5*(1/Q)*sum((s$Fx2-A*s$Fx1)^2)+((n+1)/2)*log(1/R)-0.5*(1/R)*sum((y-C*s$Fx1)^2)
+    #lik[i] = log(like)
+    
+    #  M Step:
+    C_new <- 1  # constraint
+    R_new <- (sum(y*y)-sum(C_new*s$Sx*y)) / n
+    A_new <- sum(Ptt_1) / sum(Pt[1:n-1])
+    Pi_new <- s$Sx[1]
+    Q_new <- 1  # constraint
+    V_new <- V  # constraint
+    
+    # updates
+    diff <- abs(C_new-C)+abs(R_new-R)+abs(A_new-A)+abs(Q_new-Q)+abs(Pi_new-Pi)+abs(V_new-V)
+    i <- i+1
+    A <- A_new
+    C <- C_new
+    Q <- Q_new
+    R <- R_new
+    Pi <- Pi_new
+    V <- V_new
+  }
+  #lik=lik[lik!=0]
+  return(list(A=A, C=C, Q=Q, R=R, Pi=Pi, V=V, Sx=s$Sx))#, lik=lik))
+}
+```
+
+Isolated R (output noise variable) as the issue. It is converging towards 0 resulting in low error predictions, and thus little smoothing. Still unable to find proper fix.
+
+```{r emkfex}
+t <- seq(0,4*pi,,100)
+actual <- sin(t)
+measure <- actual + rnorm(100, mean=0, sd=0.25)
+x <- kalman_uni_em(measure, 1, 1, 1, 1, 0, 0, 100, 0.0001)
+plot(t, x$Sx, main="EM KF Algorithm on Sine Wave", xlab="Timestep", ylab="Value", type="l")
+lines(t, actual, col="red")
+lines(t, measure, col="blue")
+```
+
+Constraining R to 1 results in a closer fit, but it causes the state transition matrix A to become too low.
+
+```{r emkf1, include=FALSE}
+kalman_uni_em1 <- function(y, a, c, q, r, pi, v, max_i=20, tol=0.01) {
+  
+  A <- a
+  C <- c
+  Q <- q
+  R <- r
+  Pi <- pi
+  V <- v
+  n <- length(y)  # number of timesteps
+  i <- 1  # iteration
+  diff <- 1  # difference between iterations
+  Pt <- vector(, n)
+  Ptt_1 <- vector(, n-1)
+  #lik <- vector(, max_i)
+  
+  while (i <= max_i && diff > tol) {
+    
+    #  E Step:
+    s <- KFSu(A, C, Q, R, Pi, V, y)
+    for (t in 1:n) {
+      Pt[t] <- s$Sv[t]+s$Sx[t]*s$Sx[t]
+      if (t != n) {
+        Ptt_1[t] <- s$Scov[t]+s$Sx[t+1]*s$Sx[t]
+      }
+    }
+    #like = (n/2)*log(1/Q)-0.5*(1/Q)*sum((s$Fx2-A*s$Fx1)^2)+((n+1)/2)*log(1/R)-0.5*(1/R)*sum((y-C*s$Fx1)^2)
+    #lik[i] = log(like)
+    
+    #  M Step:
+    C_new <- 1  # constraint
+    R_new <- 1
+    A_new <- sum(Ptt_1) / sum(Pt[1:n-1])
+    Pi_new <- s$Sx[1]
+    Q_new <- 1  # constraint
+    V_new <- V  # constraint
+    
+    # updates
+    diff <- abs(C_new-C)+abs(R_new-R)+abs(A_new-A)+abs(Q_new-Q)+abs(Pi_new-Pi)+abs(V_new-V)
+    i <- i+1
+    A <- A_new
+    C <- C_new
+    Q <- Q_new
+    R <- R_new
+    Pi <- Pi_new
+    V <- V_new
+  }
+  #lik=lik[lik!=0]
+  print(paste("A = ", A))
+  return(list(A=A, C=C, Q=Q, R=R, Pi=Pi, V=V, Sx=s$Sx))#, lik=lik))
+}
+```
+
+```{r emkfex1, echo=FALSE}
+t <- seq(0,4*pi,,100)
+actual <- sin(t)
+measure <- actual + rnorm(100, mean=0, sd=0.25)
+x <- kalman_uni_em1(measure, 1, 1, 1, 1, 0, 0, 100, 0.0001)
+plot(t, measure, main="EM KF Algorithm on Sine Wave w/ R=1", xlab="Timestep", ylab="Value", type="l", col="blue")
+lines(t, x$Sx, col="black")
+lines(t, actual, col="red")
+print(paste("Measurement MSE = ", sum((actual-measure)^2)/100))
+print(paste("EM KF MSE = ", sum((actual-x$Sx)^2)/100))
+```
