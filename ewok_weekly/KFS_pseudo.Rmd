@@ -1,0 +1,255 @@
+---
+title: "Kalman Filter/Smoother Code"
+author: "Ewok"
+date: "October 9, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pseudocode
+
+### Input
+
+A - n x n, state transition matrix  
+C - m x n, observation model matrix  
+Q - n x n, environmental noise  
+R - m x m, measurement noise  
+x0 - n x 1, initial state estimate  
+v0 - n x n, initial covariance estimate  
+y - m x t, observations/measurements  
+
+### Output
+
+Fv1 - n x n x t, Var($x_t$|$y_{1:t}$)  
+Fv2 - n x n x t, Var($x_{t+1}$|$y_{1:t}$)  
+Fx1 - n x t, column t is E($x_t$|$y_{1:t}$)  
+Fx2 - n x t, column t is E($x_{t+1}$|$y_{1:t}$)  
+Sx - n x t, column t is E($x_t$|$y_{1:T}$)  
+Sv - n x n x t, Var($x_t$|$y_{1:T}$)  
+Scov - n x n x t, Cov($x_t$,$x_{t+1}$|$y_{1:T}$)  
+
+### Function Names
+
+KFS - contains both the Kalman Filter and the Kalman Smoother
+
+### Instructions
+
+#### Kalman Filter
+
+For each timestep, repeat the following process:  
+Get an estimate for the predicted state by multiplying the state transition by the current state. Get an estimate for the predicted covariance by multiplying the state transition by the current covariance by the transpose of the state transition and adding the environmental noise. Let the Kalman gain be the predicted covariance times the transpose of the observation model times the inverse of: the observation model times the predicted state times the transpose of the observation model plus the measurement noise. Then the current state can be updated as the predicted state plus the Kalman gain times the difference between the observation at time t, y[t], and the observation model times the predicted state. The current covariance can be updated by multiplying the difference between the identity matrix and the Kalman gain times the observation model by the predicted covariance.
+
+#### Kalman Smoother
+
+For each timestep, repeat the following process (utilizing recursion):  
+Initialize a gain variable as the current timestep variance times the transpose of the state transition, divided by the next timestep's variance. Let the smoothed variance be the current variance plus the gain times the product of the difference between the next smoothed variance and the next timstep's variance and the transpose of the gain. The smoothed covariance is then the smoothed variance of the next timestep multiplied by the transpose of the gain. Finally the smoothed state is the current state estimate plus the gain times the difference between the next smoothed state and the state transition times the current state.
+
+## Simulation Description
+
+### Example showing good performance (Sim. 1)
+Simulate two sinusoidal waves offset by some amount, adding normally distributed noise. Run the Kalman Filter and Smoother on the result, given proper state and observation initializations and some level of error reflected in Q and R, and we expect to see a high correlation coefficient when comparing the output to the actual sinusoids.  
+Parameter values:  
+A, C, Q, R: 2x2 Identity matrices
+
+### Example showing poor performance (Sim. 2)
+Simulate two sinusoidal waves offset by some amount, adding normally distributed noise. Run the Kalman Filter and Smoother on the result, with no error allowed in Q and R along with incorrect initial state estimates, and we expect to see a low correlation coefficient when comparing the output to the actual sinusoids.  
+Parameter values:  
+A, C: 2x2 Identity matrices  
+Q, R: 2x2 Zero matrices
+
+## Evaluating Performance
+
+We will qualitatively evaluate the performance by plotting four curves on the same plot: the actual sinusoids, the sinusoids plus noise, the filtered sinusoids, and the smoothed sinusoids.
+
+We will quantitatively evaluate the performance by examining the correlation coefficent (R^2) values.
+
+## Algorithm Code
+
+Adapted from Matlab code from PLDS and converted to R.
+
+```{r kfs}
+KFS <- function(A,C,Q,R,x0,v0,y) {
+
+  require('MASS')
+  T=dim(y)[2]
+  d=dim(A)[1]
+  Fv1=array(0, dim=c(d,d,T))
+  Fv2=array(0, dim=c(d,d,T))
+  Fx1=array(0, dim=c(d,T))
+  Fx2=array(0, dim=c(d,T))
+  Sx=array(0, dim=c(d,T))
+  Sv=array(0, dim=c(d,d,T))
+  Scov=array(0, dim=c(d,d,T))
+  
+  CRC = t(C) %*% ginv(R) %*% C
+  
+  # Filter
+  for (t in 1:T) {
+    if (t==1) {
+      Fv1[,,t]=v0-v0%*%CRC%*%v0+v0%*%CRC%*%ginv(ginv(v0)+CRC)%*%CRC%*%v0
+      Fv2[,,t]=A%*%Fv1[,,t]%*%t(A)+Q
+      Fx1[,t]=x0 + v0%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x0)-v0%*%CRC%*%ginv(ginv(v0)+CRC)%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x0)
+      Fx2[,t]=A%*%Fx1[,t]
+    } else {
+      v2=Fv2[,,t-1]
+      Fv1[,,t]=v2-v2%*%CRC%*%v2+v2%*%CRC%*%ginv(ginv(v2)+CRC)%*%CRC%*%v2
+      Fv2[,,t]=A%*%Fv1[,,t]%*%t(A)+Q
+      x2=Fx2[,t-1]
+      Fx1[,t]=x2 + v2%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x2)-v2%*%CRC%*%ginv(ginv(v2)+CRC)%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x2)
+      Fx2[,t]=A%*%Fx1[,t]
+    }
+  }
+  
+  # Smoother
+  for (i in 1:T) {
+    t=T-i+1
+    if (t==T) {
+      Sv[,,t]=Fv1[,,t]
+      Jt=Fv1[,,t]%*%t(A)/(Fv2[,,t])
+      Jt[is.na(Jt)] <- 0
+      Jt=Fv1[,,t]%*%t(A)%*%ginv(Fv2[,,t])
+      Scov[,,t]=Fv2[,,t]%*%t(Jt)
+      Sx[,t]=Fx1[,t]+Jt%*%(Fx2[,t]-A%*%Fx1[,t])
+    } else {
+      Jt=Fv1[,,t]%*%t(A)/(Fv2[,,t])
+      Jt[is.na(Jt)] <- 0
+      Sv[,,t]=Fv1[,,t]+Jt%*%(Sv[,,t+1]-Fv2[,,t])%*%t(Jt)
+      Scov[,,t]=Sv[,,t+1]%*%t(Jt)
+      Sx[,t]=Fx1[,t]+Jt%*%(Sx[,t+1]-A%*%Fx1[,t])
+    }
+  }
+  return(list(Fv1=Fv1,Fv2=Fv2,Fx1=Fx1,Fx2=Fx2,Sx=Sx,Sv=Sv,Scov=Scov))
+}
+```
+
+## Simulation Code
+
+```{r sim}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+meas1 <- actual1 + rnorm(100, mean=0, sd=0.5)
+meas2 <- actual2 + rnorm(100, mean=0, sd=0.5)
+meas = array(meas1, dim=c(100,2))
+meas[,2] <- meas2
+
+plot(t, actual[,1], type="l", main="Simulation Sinusoids", xlab="Time", ylab="Value", ylim=c(-2,5))
+lines(t, actual[,2], col="black")
+lines(t, meas[,1], col="blue")
+lines(t, meas[,2], col="blue")
+```
+  
+## Simulate and Evaluate
+
+We will perform and evaluate each simulation ten times to demonstrate the consistency of the results.
+
+### Sim. 1
+Initial state estimate is random number where abs(actual-estimate) <= 1.  
+Black line - actual sinusoid  
+Blue line - measurement sinusoid (added noise)  
+Green line - Kalman filtered sinusoid  
+Red line - Kalman smoothed sinusoid  
+
+```{r simandev}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+for(i in 1:10) {
+  meas1 <- actual1 + rnorm(100, mean=0, sd=0.5)
+  meas2 <- actual2 + rnorm(100, mean=0, sd=0.5)
+  meas = array(meas1, dim=c(100,2))
+  meas[,2] <- meas2
+  
+  x0 = array(c(0 + runif(1, -1, 1), 3 + runif(1, -1, 1)), dim=c(2,1))
+  
+  x = KFS(A=diag(2), C=diag(2), Q=diag(2), R=diag(2), x0=x0, v0=diag(2), y=t(meas))
+  
+  #Plot
+  plot(t, actual[,1], type="l", main=paste("KFS Sinusoid w/ Initial Estimate (", round(x0[1], digits=3), ", ", round(x0[2], digits=3), ")"), xlab="Time", ylab="Value", ylim=c(-2,5))
+  lines(t, actual[,2], col="black")
+  lines(t, meas[,1], col="blue")
+  lines(t, meas[,2], col="blue")
+  lines(t, x$Fx1[1,], col="green")
+  lines(t, x$Fx1[2,], col="green")
+  lines(t, x$Sx[1,], col="red")
+  lines(t, x$Sx[2,], col="red")
+  
+  ms1r2 = sum((cor(actual[,1], meas[,1]))^2)
+  ms2r2 = sum((cor(actual[,2], meas[,2]))^2)
+  kf1r2 = sum((cor(actual[,1], x$Fx1[1,]))^2)
+  kf2r2 = sum((cor(actual[,2], x$Fx1[2,]))^2)
+  ks1r2 = sum((cor(actual[,1], x$Sx[1,]))^2)
+  ks2r2 = sum((cor(actual[,2], x$Sx[2,]))^2)
+  print(paste("Measurement R^2 values: ", round(ms1r2, digits=5), round(ms2r2, digits=5)))
+  print(paste("Kalman Filtered R^2 values: ", round(kf1r2, digits=5), round(kf2r2, digits=5)))
+  print(paste("Kalman Smoothed R^2 values: ", round(ks1r2, digits=5), round(ks2r2, digits=5)))
+}
+```
+
+We can see that the Kalman smoothed R^2 values are consistently higher than the Kalman filtered R^2 values, which are in turn, consistently higher than the measurment R^2 values, proving that the function was successful.
+
+### Sim. 2
+Initial state estimate is random number where abs(actual-estimate) <= 1.  
+Black line - actual sinusoid  
+Blue line - measurement sinusoid (added noise)  
+Green line - Kalman filtered sinusoid  
+Red line - Kalman smoothed sinusoid  
+
+```{r simandev2, warning=FALSE}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+for(i in 1:10) {
+  meas1 <- actual1 + rnorm(100, mean=0, sd=0.5)
+  meas2 <- actual2 + rnorm(100, mean=0, sd=0.5)
+  meas = array(meas1, dim=c(100,2))
+  meas[,2] <- meas2
+  
+  x0 = array(c(0 + runif(1, -1, 1), 3 + runif(1, -1, 1)), dim=c(2,1))
+  
+  x = KFS(A=diag(2), C=diag(2), Q=0*diag(2), R=0*diag(2), x0=x0, v0=diag(2), y=t(meas))
+  
+  #Plot
+  plot(t, actual[,1], type="l", main=paste("KFS Sinusoid w/ Initial Estimate (", round(x0[1], digits=3), ", ", round(x0[2], digits=3), ")"), xlab="Time", ylab="Value", ylim=c(-2,5))
+  lines(t, actual[,2], col="black")
+  lines(t, meas[,1], col="blue")
+  lines(t, meas[,2], col="blue")
+  lines(t, x$Fx1[1,], col="green")
+  lines(t, x$Fx1[2,], col="green")
+  lines(t, x$Sx[1,], col="red")
+  lines(t, x$Sx[2,], col="red")
+  
+  ms1r2 = sum((cor(actual[,1], meas[,1]))^2)
+  ms2r2 = sum((cor(actual[,2], meas[,2]))^2)
+  kf1r2 = sum((cor(actual[,1], x$Fx1[1,]))^2)
+  kf2r2 = sum((cor(actual[,2], x$Fx1[2,]))^2)
+  ks1r2 = sum((cor(actual[,1], x$Sx[1,]))^2)
+  ks2r2 = sum((cor(actual[,2], x$Sx[2,]))^2)
+  print(paste("Measurement R^2 values: ", round(ms1r2, digits=5), round(ms2r2, digits=5)))
+  print(paste("Kalman Filtered R^2 values: ", round(kf1r2, digits=5), round(kf2r2, digits=5)))
+  print(paste("Kalman Smoothed R^2 values: ", round(ks1r2, digits=5), round(ks2r2, digits=5)))
+}
+```
+
+We can see here that when the errors Q and R are given as 0, the Kalman Filter/Smoother does not change its estimates from the initial estimated value. R^2 values of the KFS curves were given as NA because the standard deviation of each respective curve was zero.
+
+## Final Comments
+
+We can see that given the proper parameters, the Kalman Filter/Smoother does a qualitatively and quantitatively good job at smoothing the curve. However, if errors are low, then the model tends to stick to initial estimates or measurement data (depending upon which errors are close to zero). Thus it is important that the parameters either be given proper initialization, maximized tuning, or preferably both.
+
+Main limitation: parameter estimation
