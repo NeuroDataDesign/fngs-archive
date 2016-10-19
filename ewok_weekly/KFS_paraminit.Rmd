@@ -1,12 +1,14 @@
 ---
 title: "KFS Parameter Initialization"
 author: "Ewok"
-date: "October 10, 2016"
+date: "October 18, 2016"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+require(reshape2)
 ```
 
 ## Pseudocode
@@ -26,13 +28,334 @@ v0 - n x n, initial covariance estimate
 
 ### Function Names
 
-KFS_param - initializes the parameters for the Kalman Filter/Smoother
+KFS_init - initializes the parameters for the Kalman Filter/Smoother
 
 ### Instructions
 
 Read the paper found [here](http://numbat.ucsd.edu/~bob/estimation/Estimation_Fall_2010/Notes_and_docs_files/P61_Barb_TSP.pdf) for better understanding of importance of initial noise estimates.
 
-We will initialize the state estimate to be the first measurement given by the input y, because this is simplest estimate. We will initialize the covariance estimate to the identity matrix, because v0 is less crucial to the outcome of the KFS than Q and R, and is typically an underestimate. Too small an estimate for Q leads to overconfidence in the predicted state, while too large an estimate leads to oversensitivity to noise. Q determines the amount of weight given to the Kalman gain. We will initialize Q to the identity matrix. The choice of R is less important, as it has more of an impact on the variation of the state estimates. We will initialize R to the identity matrix times the estimated mean squared error, which we define as the following: $I\times\sum_{t=0}^{T-2}\left(y_{t+1}-\frac{y_t+y_{t+2}}{2}\right)^2$. Given no information about the system, we will assume the state variables are independent and linear, thus initializing A to the identity matrix. We will assume C is a diagonal matrix of 1s (not necessarily square).
+We will initialize the state estimate to be the first measurement given by the input y, because this is simplest estimate. We will initialize the covariance estimate to the zero matrix, because v0 is less crucial to the outcome of the KFS than Q and R, and is typically an underestimate. The choice of R is less important than Q, as it has more of an impact on the variation of the state estimates. We will initialize R to the identity matrix. Too small an estimate for Q leads to overconfidence in the predicted state, while too large an estimate leads to oversensitivity to noise. Q determines the amount of weight given to the Kalman gain. We will initialize Q to the identity matrix times the estimated mean squared error per dimension, like so:
+$$Q = \begin{bmatrix}
+\frac{1}{T}\sum_{t=1}^{T-2}\left(y_{1,t+1}-\frac{y_{1,t}+y_{1,t+2}}{2}\right)^2 & 0 & \dots & 0 \\
+0 & \frac{1}{T}\sum_{t=1}^{T-2}\left(y_{2,t+1}-\frac{y_{2,t}+y_{2,t+2}}{2}\right)^2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \frac{1}{T}\sum_{t=1}^{T-2}\left(y_{n,t+1}-\frac{y_{n,t}+y_{n,t+2}}{2}\right)^2
+\end{bmatrix}$$
+Given no information about the system, we will assume the state variables are independent and linear, thus initializing A to the identity matrix. We will assume C is a diagonal matrix of 1s (not necessarily square).
 
 ## Simulation Description
 
+### Example showing good performance (Sim. 1)
+Simulate two sinusoidal waves offset by some amount, adding normally distributed noise. Use KFS_init to initialize parameters based on the measurement values. Generate uniformly random matrices for A,C,Q,R that have values between 0 and 1. For x0 and v0 generate properly sized matrices that have values between -1 and 1 (adding the offset for x0[2]). We expect to see a higher correlation coefficient for the parameter initialized Kalman Filter and Smoother than the randomly initialized Kalman Filter and Smoother.
+
+### Example showing poor performance (Sim. 2)
+Similar process for example showing good performance, but increase the normally distributed noise by a factor of 10.
+
+## Evaluating Performance
+
+To evaluate the performance of the parameter initialization, we will compare the resulting KFS values to the KFS values resulting from a random initialization. We will qualitatively evaluate the performance by two plots of three curves each:  
+1) Actual sinusoids, random Kalman Filtered values, parameter initialized Kalman Filtered values  
+2) Actual sinusoids, random Kalman Smoothed values, parameter initialized Kalman Smoothed values  
+We will hide the measurement noise for visual clarity.
+
+To quantitatively evaluate the performance, we will examine the correlation coefficent $R^2$ values. The filtered and smoothed $R^2$ values for the parameter initialization should be higher than the random initialization.
+
+## Algorithm Code
+
+```{r kfs_init}
+KFS_init <- function(y) {
+  n = dim(y)[1]
+  t = dim(y)[2]
+  A <- diag(n)
+  C <- diag(n)
+  R <- diag(n)
+  sum = array(0, dim=c(1,n))
+  for(d in 1:n) {
+    for(i in 1:(t-2)) {
+      sum[d] = sum[d] + (y[d,i+1]-((y[d,i]+y[d,i+2])/2))^2
+    }
+  }
+  msqe = sum/t
+  Q <- diag(as.vector(msqe))
+  x0 <- y[,1]
+  v0 <- diag(n)*0
+  return(list(A=A, C=C, Q=Q, R=R, x0=x0, v0=v0))
+}
+```
+
+```{r kfs, include=FALSE}
+KFS <- function(A,C,Q,R,x0,v0,y) {
+
+  require('MASS')
+  T=dim(y)[2]
+  d=dim(A)[1]
+  Fv1=array(0, dim=c(d,d,T))
+  Fv2=array(0, dim=c(d,d,T))
+  Fx1=array(0, dim=c(d,T))
+  Fx2=array(0, dim=c(d,T))
+  Sx=array(0, dim=c(d,T))
+  Sv=array(0, dim=c(d,d,T))
+  Scov=array(0, dim=c(d,d,T))
+  
+  CRC = t(C) %*% ginv(R) %*% C
+  
+  # Filter
+  for (t in 1:T) {
+    if (t==1) {
+      Fv1[,,t]=v0-v0%*%CRC%*%v0+v0%*%CRC%*%ginv(ginv(v0)+CRC)%*%CRC%*%v0
+      Fv2[,,t]=A%*%Fv1[,,t]%*%t(A)+Q
+      Fx1[,t]=x0 + v0%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x0)-v0%*%CRC%*%ginv(ginv(v0)+CRC)%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x0)
+      Fx2[,t]=A%*%Fx1[,t]
+    } else {
+      v2=Fv2[,,t-1]
+      Fv1[,,t]=v2-v2%*%CRC%*%v2+v2%*%CRC%*%ginv(ginv(v2)+CRC)%*%CRC%*%v2
+      Fv2[,,t]=A%*%Fv1[,,t]%*%t(A)+Q
+      x2=Fx2[,t-1]
+      Fx1[,t]=x2 + v2%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x2)-v2%*%CRC%*%ginv(ginv(v2)+CRC)%*%t(C)%*%ginv(R)%*%(y[,t]-C%*%x2)
+      Fx2[,t]=A%*%Fx1[,t]
+    }
+  }
+  
+  # Smoother
+  for (i in 1:T) {
+    t=T-i+1
+    if (t==T) {
+      Sv[,,t]=Fv1[,,t]
+      Jt=Fv1[,,t]%*%t(A)/(Fv2[,,t])
+      Jt[is.na(Jt)] <- 0
+      Jt=Fv1[,,t]%*%t(A)%*%ginv(Fv2[,,t])
+      Scov[,,t]=Fv2[,,t]%*%t(Jt)
+      Sx[,t]=Fx1[,t]+Jt%*%(Fx2[,t]-A%*%Fx1[,t])
+    } else {
+      Jt=Fv1[,,t]%*%t(A)/(Fv2[,,t])
+      Jt[is.na(Jt)] <- 0
+      Sv[,,t]=Fv1[,,t]+Jt%*%(Sv[,,t+1]-Fv2[,,t])%*%t(Jt)
+      Scov[,,t]=Sv[,,t+1]%*%t(Jt)
+      Sx[,t]=Fx1[,t]+Jt%*%(Sx[,t+1]-A%*%Fx1[,t])
+    }
+  }
+  return(list(Fv1=Fv1,Fv2=Fv2,Fx1=Fx1,Fx2=Fx2,Sx=Sx,Sv=Sv,Scov=Scov))
+}
+```
+
+```{r multi, include=FALSE}
+
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+## Simulation Code
+
+```{r sim}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+meas1 <- actual1 + rnorm(100, mean=0, sd=0.5)
+meas2 <- actual2 + rnorm(100, mean=0, sd=0.5)
+meas = array(meas1, dim=c(100,2))
+meas[,2] <- meas2
+
+plot(t, actual[,1], type="l", main="Simulation Sinusoids", xlab="Time", ylab="Value", ylim=c(-2,5))
+lines(t, actual[,2], col="black")
+lines(t, meas[,1], col="blue")
+lines(t, meas[,2], col="blue")
+```
+
+## Simulate and Evaluate
+
+We will perform and evaluate each simulation ten times to demonstrate the consistency of the results.
+
+### Sim. 1
+
+```{r simandev, message=FALSE}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+for(i in 1:10) {
+  meas1 <- actual1 + rnorm(100, mean=0, sd=0.5)
+  meas2 <- actual2 + rnorm(100, mean=0, sd=0.5)
+  meas = array(meas1, dim=c(100,2))
+  meas[,2] <- meas2
+  
+  par = KFS_init(t(meas))
+  x = KFS(par$A, par$C, par$Q, par$R, par$x0, par$v0, y=t(meas))
+  
+  A = array(runif(4, 0, 1), dim=c(2,2))
+  C = array(runif(4, 0, 1), dim=c(2,2))
+  Q = array(runif(4, 0, 1), dim=c(2,2))
+  R = array(runif(4, 0, 1), dim=c(2,2))
+  x0 = array(c(runif(1, -1, 1), 3 + runif(1, -1, 1)), dim=c(2,1))
+  v0 = array(runif(4, -1, 1), dim=c(2,2))
+  z = KFS(A, C, Q, R, x0, v0, y=t(meas))
+  
+  kf_data <-
+  data.frame(
+    ac1 = actual[,1],
+    ac2 = actual[,2],
+    kx1 = x$Fx1[1,],
+    kx2 = x$Fx1[2,],
+    kz1 = z$Fx1[1,],
+    kz2 = z$Fx1[2,],
+    time = t
+  )
+  
+  ks_data <-
+  data.frame(
+    ac1 = actual[,1],
+    ac2 = actual[,2],
+    kx1 = x$Sx[1,],
+    kx2 = x$Sx[2,],
+    kz1 = z$Sx[1,],
+    kz2 = z$Sx[2,],
+    time = t
+  )
+  
+  #Plot
+  fplot <- ggplot(kf_data, aes(time, colour=Legend)) + geom_line(aes(y=ac1, color="Actual Sinusoid"))+ geom_line(aes(y=ac2, color="Actual Sinusoid")) + geom_line(aes(y=kx1, color="Parameter Initialized KF")) + geom_line(aes(y=kx2, color="Parameter Initialized KF")) + geom_line(aes(y=kz1, color="Randomly Initialized KF")) + geom_line(aes(y=kz2, color="Randomly Initialized KF")) + labs(x="Time", y="Value", title="Kalman Filtered Sinusoid")
+  splot <- ggplot(ks_data, aes(time, colour=Legend)) + geom_line(aes(y=ac1, color="Actual Sinusoid"))+ geom_line(aes(y=ac2, color="Actual Sinusoid")) + geom_line(aes(y=kx1, color="Parameter Initialized KS")) + geom_line(aes(y=kx2, color="Parameter Initialized KS")) + geom_line(aes(y=kz1, color="Randomly Initialized KS")) + geom_line(aes(y=kz2, color="Randomly Initialized KS")) + labs(x="Time", y="Value", title="Kalman Smoothed Sinusoid")
+  multiplot(fplot, splot)
+  
+  ms1r2 = sum((cor(actual[,1], meas[,1]))^2)
+  ms2r2 = sum((cor(actual[,2], meas[,2]))^2)
+  xf1r2 = sum((cor(actual[,1], x$Fx1[1,]))^2)
+  xf2r2 = sum((cor(actual[,2], x$Fx1[2,]))^2)
+  xs1r2 = sum((cor(actual[,1], x$Sx[1,]))^2)
+  xs2r2 = sum((cor(actual[,2], x$Sx[2,]))^2)
+  zf1r2 = sum((cor(actual[,1], z$Fx1[1,]))^2)
+  zf2r2 = sum((cor(actual[,2], z$Fx1[2,]))^2)
+  zs1r2 = sum((cor(actual[,1], z$Sx[1,]))^2)
+  zs2r2 = sum((cor(actual[,2], z$Sx[2,]))^2)
+  print(paste("Measurement R^2: ", round(ms1r2, digits=5), round(ms2r2, digits=5)))
+  print(paste("Kalman Filter R^2: ", round(xf1r2, digits=5), round(xf2r2, digits=5), " vs. ", round(zf1r2, digits=5), round(zf2r2, digits=5)))
+  print(paste("Kalman Smoother R^2: ", round(xs1r2, digits=5), round(xs2r2, digits=5), " vs. ", round(zs1r2, digits=5), round(zs2r2, digits=5)))
+}
+```
+
+We can see that the parameter initialized KFS $R^2$ values are consistently higher than the randomly initialized KFS $R^2$ values.
+
+### Sim. 2
+
+```{r sim2andev, message=FALSE}
+t <- seq(0,4*pi,,100)
+
+actual1 <- sin(t) + sin(2*t)
+actual2 <- sin(t) + sin(2*t) + 3
+actual = array(actual1, dim=c(100,2))
+actual[,2] <- actual2
+
+for(i in 1:10) {
+  meas1 <- actual1 + rnorm(100, mean=0, sd=5)
+  meas2 <- actual2 + rnorm(100, mean=0, sd=5)
+  meas = array(meas1, dim=c(100,2))
+  meas[,2] <- meas2
+  
+  par = KFS_init(t(meas))
+  x = KFS(par$A, par$C, par$Q, par$R, par$x0, par$v0, y=t(meas))
+  
+  A = array(runif(4, 0, 1), dim=c(2,2))
+  C = array(runif(4, 0, 1), dim=c(2,2))
+  Q = array(runif(4, 0, 1), dim=c(2,2))
+  R = array(runif(4, 0, 1), dim=c(2,2))
+  x0 = array(c(runif(1, -1, 1), 3 + runif(1, -1, 1)), dim=c(2,1))
+  v0 = array(runif(4, -1, 1), dim=c(2,2))
+  z = KFS(A, C, Q, R, x0, v0, y=t(meas))
+  
+  kf_data <-
+  data.frame(
+    ac1 = actual[,1],
+    ac2 = actual[,2],
+    kx1 = x$Fx1[1,],
+    kx2 = x$Fx1[2,],
+    kz1 = z$Fx1[1,],
+    kz2 = z$Fx1[2,],
+    time = t
+  )
+  
+  ks_data <-
+  data.frame(
+    ac1 = actual[,1],
+    ac2 = actual[,2],
+    kx1 = x$Sx[1,],
+    kx2 = x$Sx[2,],
+    kz1 = z$Sx[1,],
+    kz2 = z$Sx[2,],
+    time = t
+  )
+  
+  #Plot
+  fplot <- ggplot(kf_data, aes(time, colour=Legend)) + geom_line(aes(y=ac1, color="Actual Sinusoid"))+ geom_line(aes(y=ac2, color="Actual Sinusoid")) + geom_line(aes(y=kx1, color="Parameter Initialized KF")) + geom_line(aes(y=kx2, color="Parameter Initialized KF")) + geom_line(aes(y=kz1, color="Randomly Initialized KF")) + geom_line(aes(y=kz2, color="Randomly Initialized KF")) + labs(x="Time", y="Value", title="Kalman Filtered Sinusoid")
+  splot <- ggplot(ks_data, aes(time, colour=Legend)) + geom_line(aes(y=ac1, color="Actual Sinusoid"))+ geom_line(aes(y=ac2, color="Actual Sinusoid")) + geom_line(aes(y=kx1, color="Parameter Initialized KS")) + geom_line(aes(y=kx2, color="Parameter Initialized KS")) + geom_line(aes(y=kz1, color="Randomly Initialized KS")) + geom_line(aes(y=kz2, color="Randomly Initialized KS")) + labs(x="Time", y="Value", title="Kalman Smoothed Sinusoid")
+  multiplot(fplot, splot)
+  
+  ms1r2 = sum((cor(actual[,1], meas[,1]))^2)
+  ms2r2 = sum((cor(actual[,2], meas[,2]))^2)
+  xf1r2 = sum((cor(actual[,1], x$Fx1[1,]))^2)
+  xf2r2 = sum((cor(actual[,2], x$Fx1[2,]))^2)
+  xs1r2 = sum((cor(actual[,1], x$Sx[1,]))^2)
+  xs2r2 = sum((cor(actual[,2], x$Sx[2,]))^2)
+  zf1r2 = sum((cor(actual[,1], z$Fx1[1,]))^2)
+  zf2r2 = sum((cor(actual[,2], z$Fx1[2,]))^2)
+  zs1r2 = sum((cor(actual[,1], z$Sx[1,]))^2)
+  zs2r2 = sum((cor(actual[,2], z$Sx[2,]))^2)
+  print(paste("Measurement R^2: ", round(ms1r2, digits=5), round(ms2r2, digits=5)))
+  print(paste("Kalman Filter R^2: ", round(xf1r2, digits=5), round(xf2r2, digits=5), " vs. ", round(zf1r2, digits=5), round(zf2r2, digits=5)))
+  print(paste("Kalman Smoother R^2: ", round(xs1r2, digits=5), round(xs2r2, digits=5), " vs. ", round(zs1r2, digits=5), round(zs2r2, digits=5)))
+}
+```
+
+We can see that now that there is more uncertainty in the measured values, the parameter initialized KFS $R^2$ values are often not higher than the randomly initialized KFS $R^2$ values.
+
+## Final Comments
+
+The parameter initialization method works fairly well and is decently resilient. Its one downside however, is apparent when there is a very noisy measurement. In these situations, the model does poorly at predicting the errors and therefore does not lead to the desired smoothed curve, often being beat by the randomly initialized KFS.
