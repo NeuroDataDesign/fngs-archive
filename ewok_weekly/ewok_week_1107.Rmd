@@ -1,0 +1,153 @@
+---
+title: "Deliverable_11_07"
+author: "Eric Walker & Tanay Agarwal"
+date: "November 7, 2016"
+output: html_document
+---
+
+## Kalman Filter with Parameter Initialization
+
+We started by using the Kalman parameter initialization method I developed a few weeks ago:
+
+```{r kfs_init}
+KFS_init <- function(y) {
+  n = dim(y)[1]
+  t = dim(y)[2]
+  A <- diag(n)
+  C <- diag(n)
+  R <- diag(n)
+  sum = array(0, dim=c(1,n))
+  for(d in 1:n) {
+    for(i in 1:(t-2)) {
+      sum[d] = sum[d] + (y[d,i+1]-((y[d,i]+y[d,i+2])/2))^2
+    }
+  }
+  msqe = sum/t
+  Q <- diag(as.vector(msqe))
+  x0 <- y[,1]
+  v0 <- diag(n)*0
+  return(list(A=A, C=C, Q=Q, R=R, x0=x0, v0=v0))
+}
+```
+
+We ran the parameter initialization on three different datasets and produced plots for the original, the Kalman filtered, and the Kalman smoothed timeseries. The following code was used to generate the graphs:
+
+```{r kfs_init_discrim, eval=FALSE}
+require("ggplot2")
+require("reshape2")
+source('C:/Users/Eric/Documents/Github/fngs/data_processing/Rutils/open_timeseries.R')
+source('C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+source('C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+source('C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/hell_dist.R')
+source('C:/Users/Eric/Documents/R/KFS_init.R')
+source('C:/Users/Eric/Documents/R/KFS.R')
+source('C:/Users/Eric/Documents/R/prod_pkde.R')
+source('C:/Users/Eric/Documents/R/multiplot.R')
+
+
+fnames = list.files('2_JHU/Research/Data/SWU_1', pattern="\\.rds", full.names=TRUE)
+parsed = open_timeseries(fnames, sub_pos=3, run_pos=4)
+ids = parsed[[3]]
+ts = parsed[[1]]
+nSubs = length(ids)
+nRois = dim(ts[[1]])[2]
+nStps = dim(ts[[1]])[1]
+wgraphs = array(dim=c(nStps, nRois, nSubs))
+for(i in 1:nSubs) {wgraphs[,,i] <- t(ts[[i]][1:nStps, 1:nRois])}
+
+k <- vector("list", nSubs)
+for (i in 1:nSubs) {
+  p <- KFS_init(t(wgraphs[,,i]))
+  k[[i]] <- KFS(p$A, p$C, p$Q, p$R, p$x0, p$v0, t(wgraphs[,,i]))
+}
+
+c = array(dim=c(nRois, nRois, nSubs))
+#for (i in 1:nSubs) {c[,,i] = cor(wgraphs[,,i])}
+for (i in 1:nSubs) {c[,,i] = cor(t(k[[i]]$Fx1))}
+dist = distance(c)
+m = mnr(rdf(dist, ids))
+pdistc_kf <- ggplot(melt(dist), aes(x=Var2, y=Var1, fill=value)) + geom_tile(color="white") +
+  scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="Distance") + labs(x="Scan", y="Scan", title=paste("MNR = ", round(m, digits=4)))
+pkdec_kf = prod_pkde(dist, ids)
+multiplot(pdistc_kf, pkdec_kf, cols=2)
+```
+
+### SWU_1
+![Original timeseries](SWU1.jpeg)  
+
+![Kalman Filtered timeseries](SWU1_KFS_init_filtered.jpeg)  
+
+![Kalman Smoothed timeseries](SWU1_KFS_init_smoothed.jpeg)  
+
+
+### NKI
+![Original timeseries](NKI.jpeg)  
+
+![Kalman Filtered timeseries](NKI_KFS_init_filtered.jpeg)  
+
+![Kalman Smoothed timeseries](NKI_KFS_init_smoothed.jpeg)  
+
+
+### DES
+![Original timeseries](DES.jpeg)  
+
+![Kalman Filtered timeseries](DES_KFS_init_filtered.jpeg)  
+
+![Kalman Smoothed timeseries](DES_KFS_init_smoothed.jpeg)  
+
+
+Clearly, with the parameter initialization, the Kalman Filter/Smoother has negligible effects on the discriminability. 
+
+## Kalman Filter with Parameter Estimation
+
+After seeing negligible results from filtering using parameter initialization, we tried using existing EM packages that find maximum likelihood estimates of Kalman parameters. The goal was to see if starting with optimal parameters helps improve discriminability after filtering the data. We tried several different R packages, including MARSS, FKF, dlm, and stsm. Below, we outline the process and results.
+
+#### FKF
+
+The [FKF](https://cran.r-project.org/web/packages/FKF/FKF.pdf) package is widely considered to be the fastest implementation of Kalman MLE for multivariate time-series data. However, the algorithm used up all 16GB of RAM that we had available locally, and failed. So, we then cut our SWU_1_0027203_1 time-series data to 50 time-steps:
+
+```{r fkf, eval=FALSE}
+require("FKF")
+
+y <- readRDS("C:/Users/Tanay Agarwal/Desktop/College Classes/NeuroData 1/Deliverables 11-07/SWU_1 data/SWU_1_0027203_1_rest_desikan_2mm.rds")
+x <- y[,1:50]
+
+m <- 70
+d <- 70
+n <- 50
+
+dt <- ct <- matrix(0, nrow = m, ncol = 1)
+Zt <- matrix(1, nrow = d, ncol = m)
+Tt <- matrix(1, nrow = m, ncol = m)
+
+a0 <- x[,1]
+P0 <- diag(1, nrow = m, ncol = m)
+
+#HHt = var(x, na.rm = TRUE) * 0.5
+#HHt = matrix(HHt)
+#print(dim(HHt))
+fit.fkf <- optim(c(HHt = var(x, na.rm = TRUE) * .5,
+                  GGt = var(x, na.rm = TRUE) * .5),
+                fn = function(par, ...)
+                  -fkf(HHt = matrix(par[1]), GGt = matrix(par[2]), ...)$logLik,
+                yt = rbind(x), a0 = a0, P0 = P0, dt = dt, ct = ct,
+                Zt = Zt, Tt = Tt, check.input = FALSE)
+```
+
+With this setup, the algorithm has access to enough memory but now it's unable to calculate the inverses, determinants, and Cholesky factorizations of some matrices. The algorithm fails to return the maximum likelihood estimates of the parameters.
+
+![Error message](fkf_error.jpg) 
+
+#### MARSS
+
+We experienced similar issues with the [MARSS](https://cran.r-project.org/web/packages/MARSS/MARSS.pdf) package as we did with FKF. When run on the entire SWU_1 dataset, the operation used up all available RAM and failed. When using smaller splices of the data, however, we were able to get some favorable results.
+
+For testing purposes, we decided to use a small splice of the SWU_1_0027203_1 time-series. The algorithm did not converge to an MLE because the slope and absolute tolerance levels were not met within the number of iterations. However, it DID converge when we manually set these tolerances to 1.
+
+#### stsm
+
+The [stsm](https://cran.r-project.org/web/packages/stsm/stsm.pdf) package contains a method maxlik.em, but the method is required to run on an stsm object, and the documentation for the necessary arguments to create a new stsm object is extremely unclear. The constructor requires initial values for a list of parameters defined by the user, but consistently throws errors even when formatted as in provided examples.
+
+#### dlm
+
+The [dlm](https://cran.r-project.org/web/packages/dlm/dlm.pdf) package contains dlmMLE which requires a build function that "takes a vector of the same length as [the parameters] and returns an object of class dlm, or a list that may be interpreted as such." From the documentation, it is unclear exactly what the purpose of this function is. Over the summer, I did not use this method and instead directly initialized a dlm object that I then passed to the dlmFilter, which is why I did not run into this problem. 
