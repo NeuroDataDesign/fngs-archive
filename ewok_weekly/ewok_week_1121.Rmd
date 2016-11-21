@@ -1,0 +1,80 @@
+---
+title: "KFS EM on Simulations & Real Data"
+author: "Ewok"
+date: "November 21, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Simulations
+
+![Sim0](s0.jpeg)  
+
+![Sim0 A](s0_a.jpeg)  
+
+***
+![Sim1](s1.jpeg)  
+
+![Sim1 A](s1_a.jpeg)  
+
+***
+![Sim2](s2.jpeg)  
+
+![Sim2 A](s2_a.jpeg)  
+
+***
+![Sim3](s3.jpeg)  
+
+![Sim3 A](s3_a.jpeg)  
+
+***
+![Sim4](s4.jpeg)  
+
+![Sim4 A](s4_a.jpeg)  
+
+***
+![Sim5](s5.jpeg)  
+
+![Sim5 A](s5_a.jpeg)  
+
+***
+![Sim6](s6.jpeg)  
+
+![Sim6 A](s6_a.jpeg)  
+
+***
+![Sim7](s7.jpeg)  
+
+![Sim7 A](s7_a.jpeg)  
+
+***
+![Sim8](s8.jpeg)  
+
+![Sim8 A](s8_a.jpeg)  
+
+***
+![Sim9](s9.jpeg)  
+
+![Sim9 A](s9_a.jpeg)  
+
+***
+
+# Real Data
+![NKI](NKI.jpeg)  
+
+![NKI A](NKI_a.jpeg)  
+
+***
+![SWU1](SWU1.jpeg)  
+
+![SWU1 A](SWU1_a.jpeg)  
+
+***
+![BNU1](BNU1.jpeg)  
+
+![BNU1 A](BNU1_a.jpeg)  
+
+***
+
