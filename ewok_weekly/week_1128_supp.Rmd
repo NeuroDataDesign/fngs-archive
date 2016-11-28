@@ -1,0 +1,100 @@
+---
+title: "KFS EM Discriminability w/ p=4, d=8"
+author: "Ewok"
+date: "November 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simulations
+
+![**Simulation 0 Actual**](sim0.jpeg)  
+
+![**Simulation 0 Estimated**](sim0_em.jpeg) 
+
+***
+
+![**Simulation 1 Actual**](sim1.jpeg)  
+
+![**Simulation 1 Estimated**](sim1_em.jpeg)  
+
+***
+
+![**Simulation 2 Actual**](sim2.jpeg)  
+
+![**Simulation 2 Estimated**](sim2_em.jpeg) 
+
+***
+
+![**Simulation 3 Actual**](sim3.jpeg)  
+
+![**Simulation 3 Estimated**](sim3_em.jpeg) 
+
+***
+
+![**Simulation 4 Actual**](sim4.jpeg)  
+
+![**Simulation 4 Estimated**](sim4_em.jpeg) 
+
+***
+
+![**Simulation 5 Actual**](sim5.jpeg)  
+
+![**Simulation 5 Estimated**](sim5_em.jpeg) 
+
+***
+
+![**Simulation 6 Actual**](sim6.jpeg)  
+
+![**Simulation 6 Estimated**](sim6_em.jpeg) 
+
+***
+
+![**Simulation 7 Actual**](sim7.jpeg)  
+
+![**Simulation 7 Estimated**](sim7_em.jpeg) 
+
+***
+
+![**Simulation 8 Actual**](sim8.jpeg)  
+
+![**Simulation 8 Estimated**](sim8_em.jpeg) 
+
+***
+
+![**Simulation 9 Actual**](sim9.jpeg)  
+
+![**Simulation 9 Estimated**](sim9_em.jpeg) 
+
+***
+
+![**Simulation 10 Actual**](sim10.jpeg)  
+
+![**Simulation 10 Estimated**](sim10_em.jpeg) 
+
+***
+
+![**Simulation 11 Actual**](sim11.jpeg)  
+
+![**Simulation 11 Estimated**](sim11_em.jpeg)  
+
+***
+
+![**Simulation 12 Actual**](sim12.jpeg)  
+
+![**Simulation 12 Estimated**](sim12_em.jpeg) 
+
+***
+
+![**Simulation 13 Actual**](sim13.jpeg)  
+
+![**Simulation 13 Estimated**](sim13_em.jpeg) 
+
+***
+
+![**Simulation 14 Actual**](sim14.jpeg)  
+
+![**Simulation 14 Estimated**](sim14_em.jpeg) 
