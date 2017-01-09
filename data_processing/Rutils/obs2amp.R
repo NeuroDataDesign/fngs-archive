@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# obs2fft.R
+# obs2freq.R
 # Created by Eric Bridgeford on 2017-01-08.
 # Email: ebridge2@jhu.edu
 # Copyright (c) 2016. All rights reserved.
 #
-# a utility to convert timeseries to correlation matrices. 
+# a utility to convert timeseries to amplitude spectra. 
 # Inputs:
 #   observations[[subs]][timesteps, rois]: a list of observations 
 #                 for a particular subject.
@@ -40,4 +40,28 @@ obs2amp <- function(observations, normalize=TRUE) {
   }, simplify=FALSE, USE.NAMES=TRUE)
   
   return(amp_data)
+}
+# a utility to convert timeseries to power spectra. 
+# Inputs:
+#   observations[[subs]][timesteps, rois]: a list of observations 
+#                 for a particular subject.
+#
+# OUtputs:
+#   amp_data[[subs]][timesteps, rois]: the amplitude spectrum of the data. 
+#
+obs2pow <- function(observations, normalize=TRUE) {
+  
+  pow_data <- sapply(observations,  function(x) {
+    nt <- dim(x)[1]
+    pow_sig <- apply(X=x, MARGIN=c(2), FUN=fft)/nt
+    # one sided
+    pow_sig <- abs(pow_sig[1:ceiling(nt/2),,drop=FALSE])^2
+    # normalized
+    if (normalize) {
+      pow_sig <- pow_sig %*% diag(1/apply(X=pow_sig, MARGIN=2, FUN=sum))
+    }
+    return(pow_sig)
+  }, simplify=FALSE, USE.NAMES=TRUE)
+  
+  return(pow_data)
 }

@@ -287,6 +287,8 @@ Here, we will compare how the spectral approach performs with respect to the dis
 
 ### Spectral Approach
 
+#### Amplitude Spectrum
+
 ```{r, fig.height=6, fig.width=12, message=FALSE}
   source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
   source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
@@ -307,12 +309,37 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach, d=%.4f', mnrspec))
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
   multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
 ```
+
+#### Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal)
+  div <- amp2div(pow_sig)
+  distmtx <- div2dist(div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
 
 ### Discriminability Approach
 
