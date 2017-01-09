@@ -1,4 +1,4 @@
-# Copyright 2014 Open Connectome Project (http://openconnecto.me)
+# Copyright 2016 Neurodata (http://openconnecto.me)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# signal2zscore.R
-# Created by Eric Bridgeford on 2016-11-07.
+# obs2fft.R
+# Created by Eric Bridgeford on 2017-01-08.
 # Email: ebridge2@jhu.edu
 # Copyright (c) 2016. All rights reserved.
 #
@@ -23,12 +23,19 @@
 #                 for a particular subject.
 #
 # OUtputs:
-#   corr_data[[subs]][rois, rois]: the locally correlated roi timeseries. 
+#   amp_data[[subs]][timesteps, rois]: the amplitude spectrum of the data. 
 #
-obs2corr <- function(observations) {
-
-  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])),
-                      simplify=FALSE, USE.NAMES=TRUE)
+obs2amp <- function(observations) {
   
-  return(corr_data)
+  amp_data <- sapply(observations,  function(x) {
+    nt <- dim(x)[1]
+    amp_sig <- fft(x)/nt
+    # one sided
+    amp_sig <- 2*abs(amp_sig[1:ceiling(nt/2),])
+    # normalized
+    amp_sig <- amp_sig %*% diag(1/apply(X=amp_sig, MARGIN=2, FUN=sum))
+    return(amp_sig)
+  }, simplify=FALSE, USE.NAMES=TRUE)
+  
+  return(amp_data)
 }
