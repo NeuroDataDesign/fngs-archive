@@ -66,16 +66,27 @@ Similarly, the spectral approach assumes that at resting state, a particular sub
 First, we consider the fft for each ROI, consider only the first half of the frequency spectrum (note that fft gives us a symmetric result; we only want the lower half of this symmetric output), and normalize to sum to one.
 ```{r, eval=FALSE}
   # signal[timesteps, roi] is an array containing the timesteps data for a particular subject
+def amp_spectrum:
   for roi in rois:
     # compute fft of the signal
     nt <- dim(fft_roi)[1]
     fft_roi <- fft(signal[,roi])/nt
     # dim_fft[1] is number of timesteps
     fft_roi <- fft_roi[1:ceil(dim_fft[1]/2), ]
-    # normalize
-    fft_roi <- fft_roi/sum(fft_roi)
     # get the amplitude spectrum
     amp[roi,] <- 2*abs(fft_roi)
+    # normalize, if desired by the sum of the fft up to this point
+    
+def pow_spectrum:
+  for roi in rois:
+    # compute fft of the signal
+    nt <- dim(fft_roi)[1]
+    fft_roi <- fft(signal[,roi])/nt
+    # dim_fft[1] is number of timesteps
+    fft_roi <- fft_roi[1:ceil(dim_fft[1]/2), ]
+    # get the amplitude spectrum
+    amp[roi,] <- abs(fft_roi)^2
+    # normalize, if desired by the sum of the fft up to this point
 ```
 
 Next, we compute the Kullback-Leibler divergence between each pair of regions. The kullback-leibler divergence can simply be defined as:
