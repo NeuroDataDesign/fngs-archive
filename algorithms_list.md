@@ -1,5 +1,4 @@
-Nuisance correction (done)
-
+Nuisance correction (done)  
 Slice-timing correction
 
 Motion correction: MCFLIRT
