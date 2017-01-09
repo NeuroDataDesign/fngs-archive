@@ -128,8 +128,82 @@ distance_matrix <- function(div_mtxs) {
   return(dist)
 }
 ```
-
 ## Simulations
+
+### Basic Test
+
+First, we will simply check how effectively we can recover the amplitudes of a basic combination of sinusoids.
+
+We define the following equation, and if all goes well, our amplitude spectrum plot should show the correct amplitudes at the proper frequencies.
+
+\begin{equation}
+  y = .5 \sin(t) + .7 \sin(t + \frac{\pi}{2})
+\end{equation}
+
+We then corrupt this signal with zero mean white noise of variance $2$:
+
+\begin{equation}
+  x = y + \mathcal{N}(\mu=0, \Sigma=2)
+\end{equation}
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  require('ggplot2')
+  require('reshape2')
+  require('Rmisc')
+  fs <- 1000
+  T = 1/fs
+  L=1000
+  t=seq(from=0, to=L-1)*T
+  y = 0.5*sin(2*pi*50*t) + 0.7*sin(2*pi*120*t)
+  # covariance of 3 is a sd of sqrt(2)
+  x = y + rnorm(L, mean=0, sd = sqrt(2))
+  dat_time_dom = data.frame(t=t[1:50], original=y[1:50], corrupted=x[1:50])
+  melted_time_dom = melt(dat_time_dom, id="t")
+  time_plot <- ggplot(data = melted_time_dom, aes(x=t, y=value, group=variable, color=variable)) +
+    geom_line() +
+    xlab('time(sec)') +
+    ylab('Signal Strength') +
+    ggtitle("Signal in Time Domain")
+  print(time_plot)
+```
+
+Our investigation hinges on how effectively we can recover the amplitudes in the frequency domain from our corrupted signal. Next, we look at how our existing code performs in this regard:
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2amp.R')
+  # set up so we can use the same code we use on timeseries data on the testing data
+  signal <- list()
+  original_sig <- array(NaN, dim=c(L, 2))
+  original_sig[,1] <- y
+  original_sig[,2] <- x
+  signal[[1]] <- original_sig
+  amp <- obs2amp(signal, normalize=FALSE)
+  freq <- fs*seq(from=0, to=ceiling(L/2)-1)/L
+  
+  dat_freq_dom <- data.frame(frequency=freq, original=amp[[1]][,2], corrupted=amp[[1]][,1])
+  melted_freq_dom <- melt(dat_freq_dom, id="frequency")
+  orig_freq_dom <- melted_freq_dom[melted_freq_dom$variable == "original",]
+  cor_freq_dom <- melted_freq_dom[melted_freq_dom$variable == "corrupted",]
+  freq_plot_orig <- ggplot(data = orig_freq_dom, aes(x=frequency, y=value, group=variable, color=variable)) +
+    geom_line(color='blue') +
+    xlab('Frequency(\'Hz\')') +
+    ylab('Amplitude') +
+    theme(legend.position="None") +
+    ggtitle('Amplitude Spectrum in Frequency Domain of Original Signal')
+  freq_plot_cor <- ggplot(data = cor_freq_dom, aes(x=frequency, y=value, group=variable, color=variable)) +
+    geom_line() +
+    xlab('Frequency(\'Hz\')') +
+    ylab('Amplitude') +
+    theme(legend.position="None") +
+    ggtitle('Amplitude Spectrum in Frequency Domain of Corrupted Signal')
+  
+  freq_plot <- multiplot(freq_plot_orig, freq_plot_cor, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+  print(freq_plot)
+```
+
+As our original equation specifies, we can clearly see that we have one spike of magnitude $.5$ at $f=50$ Hz, and another spike of magnitude $.7$ at $f=120$ Hz. It is clear that our corrupted signal recovers essentially these same values. 
+
+### Data-Simulating Test
 
 To check our spectral method, we consider the following experimental setup:
 
@@ -179,8 +253,6 @@ Then we can set up a test dataset as follows:
 
 And we can then visualize our simulated data:
 ```{r, fig.height=6, fig.width=12, message=FALSE}
-  require('reshape2')
-  require('ggplot2')
   require('Rmisc')
   ids <- ceiling(1:40/2)
   kdeobj <- kde_subject(dist, ids)
@@ -216,10 +288,16 @@ Here, we will compare how the spectral approach performs with respect to the dis
 ### Spectral Approach
 
 ```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
   amp_sig <- obs2amp(signal)
   div <- amp2div(amp_sig)
   distmtx <- div2dist(div)
 
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
   kdeobj <- kde_subject(distmtx, ids)
   kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
   colnames(kde_dist) <- c("intra", "inter", "distance")
@@ -229,7 +307,7 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle('Distance Matrix Spectral Approach')
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach, d=%.4f', mnrspec))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
@@ -240,10 +318,6 @@ Here, we will compare how the spectral approach performs with respect to the dis
 
 #### Raw Graphs
 ```{r, fig.height=6, fig.width=12, message=FALSE}
-  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
-  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
-  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
-  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
   corr <- obs2corr(signal)
 
   ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
@@ -258,6 +332,7 @@ Here, we will compare how the spectral approach performs with respect to the dis
   }
   
   Draw <- distance(wgraphs)
+  mnrraw <- mnr(rdf(Draw, ids))
 
   kdeobj <- kde_subject(Draw, ids)
   kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
@@ -268,7 +343,7 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle('Distance Matrix Discriminability Approach')
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Discriminability Approach, d=%.4f', mnrraw))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
