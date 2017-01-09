@@ -25,15 +25,17 @@
 # OUtputs:
 #   amp_data[[subs]][timesteps, rois]: the amplitude spectrum of the data. 
 #
-obs2amp <- function(observations) {
+obs2amp <- function(observations, normalize=TRUE) {
   
   amp_data <- sapply(observations,  function(x) {
     nt <- dim(x)[1]
-    amp_sig <- fft(x)/nt
+    amp_sig <- apply(X=x, MARGIN=c(2), FUN=fft)/nt
     # one sided
-    amp_sig <- 2*abs(amp_sig[1:ceiling(nt/2),])
+    amp_sig <- 2*abs(amp_sig[1:ceiling(nt/2),,drop=FALSE])
     # normalized
-    amp_sig <- amp_sig %*% diag(1/apply(X=amp_sig, MARGIN=2, FUN=sum))
+    if (normalize) {
+      amp_sig <- amp_sig %*% diag(1/apply(X=amp_sig, MARGIN=2, FUN=sum))
+    }
     return(amp_sig)
   }, simplify=FALSE, USE.NAMES=TRUE)
   
