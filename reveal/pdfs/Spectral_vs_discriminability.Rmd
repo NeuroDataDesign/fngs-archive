@@ -341,9 +341,9 @@ Here, we will compare how the spectral approach performs with respect to the dis
 ```
 
 
-### Discriminability Approach
+### Standard Discriminability Approach
 
-#### Raw Graphs
+#### Raw Correaltion Graphs
 ```{r, fig.height=6, fig.width=12, message=FALSE}
   corr <- obs2corr(signal)
 
