@@ -39,20 +39,24 @@ open_timeseries <- function(fnames, dataset_pos=1, sub_pos=2, run_pos =3) {
   dataset <- vector("character", length(fnames))
   runs <- vector("character", length(fnames))
   numscans<-length(fnames)
-  ts <- vector("list", length(fnames))
-  names(ts) <- 1:numscans
-  for (i in as.numeric(names(ts))) {
+  ts <- list()
+  counter <- 0
+  for (i in 1:length(fnames)) {
     tts <- readRDS(fnames[i]) # read the timeseries from the filename
     basename <- basename(fnames[i])     # the base name of the file
     base_split <- strsplit(basename, "\\.|-|_") # parse out the subject, which will be after the study name
     name <- unlist(base_split)
     dataset[i] <- name[dataset_pos]
-    subjects[i] <- name[sub_pos] # subject name must be a string, so do not convert to numeric
-    runs[i] <- name[run_pos]
+
     tts[is.nan(tts)] <- 0
-    ts[[i]] <-t(tts)
+    if (!any(apply(tts, MARGIN=1, function(x) sum(abs(x))) == 0)) {
+      counter <- counter + 1
+      ts[[counter]] <-t(tts)
+      subjects[counter] <- name[sub_pos] # subject name must be a string, so do not convert to numeric
+      runs[counter] <- name[run_pos]
+    }
   }
-  pack <- list(ts=ts, dataset=dataset, subjects=subjects, runs=runs)# pack up the dataset, subject, and run ids witht the timeseries
+  pack <- list(ts=ts, dataset=dataset, subjects=subjects[1:counter], runs=runs[1:counter])# pack up the dataset, subject, and run ids witht the timeseries
   return(pack)
 }
 

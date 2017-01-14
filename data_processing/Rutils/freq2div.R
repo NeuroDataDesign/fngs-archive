@@ -30,7 +30,7 @@ freq2div <- function(freq) {
     div_mtx <- array(NaN, dim=c(nroi, nroi))
     for (roi1 in 1:nroi) {
       for (roi2 in 1:nroi) {
-        div_mtx[roi1, roi2] <- kl_div(x[,roi1], x[,roi2])
+        div_mtx[roi1, roi2] <- kl_div(x[,roi1, drop=FALSE], x[,roi2, drop=FALSE])
       }
     }
     return(div_mtx)
@@ -46,6 +46,8 @@ freq2div <- function(freq) {
 
 kl_div <- function(a, b) {
   disc_div <- a*log(a/b)  # KL divergence at each point
-  disc_div[is.nan(disc_div)] <- 0  # replace divide by zeros, or log(0)s, with 0
+  t <- dim(disc_div)[1]
+  disc_div[a == 0 & b == 0] <- 0  # replace divide by zeros, or log(0)s, with 0
+  disc_div[(b == 0 & a != 0) | (a == 0 & b != 0)] <- 1/t  # if we get inf value, set as the maximum divergence for each element
   return(sum(disc_div))  # KL divergence is the sum of the divergence at each point
 }

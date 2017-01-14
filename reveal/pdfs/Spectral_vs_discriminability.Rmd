@@ -135,13 +135,13 @@ distance_matrix <- function(div_mtxs) {
     for sub in subs {
       dist[sub1, sub2] <- hdist(signals[sub1,,], signals[sub2,,])
     }
-  }  
+  }
   return(dist)
 }
 ```
 ## Simulations
 
-### Basic Test
+### Test of Amplitude Spectrum
 
 First, we will simply check how effectively we can recover the amplitudes of a basic combination of sinusoids.
 
@@ -161,10 +161,10 @@ We then corrupt this signal with zero mean white noise of variance $2$:
   require('ggplot2')
   require('reshape2')
   require('Rmisc')
-  fs <- 1000
-  T = 1/fs
-  L=1000
-  t=seq(from=0, to=L-1)*T
+  fs <- 1000  # sampling rate
+  tp = 1/fs  # sampling period
+  L=1000  # number of time points total
+  t=seq(from=0, to=L-1)*tp  # the time points
   y = 0.5*sin(2*pi*50*t) + 0.7*sin(2*pi*120*t)
   # covariance of 3 is a sd of sqrt(2)
   x = y + rnorm(L, mean=0, sd = sqrt(2))
@@ -178,18 +178,32 @@ We then corrupt this signal with zero mean white noise of variance $2$:
   print(time_plot)
 ```
 
-Our investigation hinges on how effectively we can recover the amplitudes in the frequency domain from our corrupted signal. Next, we look at how our existing code performs in this regard:
+Our investigation hinges on how effectively we can recover the amplitudes in the frequency domain from our corrupted signal. We run several tests on our methods:
 
 ```{r, fig.height=6, fig.width=12, message=FALSE}
-  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2amp.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
   # set up so we can use the same code we use on timeseries data on the testing data
   signal <- list()
   original_sig <- array(NaN, dim=c(L, 2))
   original_sig[,1] <- y
   original_sig[,2] <- x
   signal[[1]] <- original_sig
-  amp <- obs2amp(signal, normalize=FALSE)
+  amp <- obs2amp(signal, tr=tp, lc=5, normalize=FALSE)
   freq <- fs*seq(from=0, to=ceiling(L/2)-1)/L
+```
+
+#### Bandpass Check
+
+First, we want to verify that our code for bandpassing works correctly. Bandpassing is relatively simple, so we don't need any complex tests here, just verifying that the appropriate amplitudes are zero will suffice:
+
+```{r, message=FALSE}
+  require(testthat)
+  expect_true(all(amp[[1]][,1][freq < 5] == 0))  # we highpassed above this cutoff, so should be zero below
+```
+We check that the amplitudes match up appropriately:
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  amp <- obs2amp(signal, normalize=FALSE)
   
   dat_freq_dom <- data.frame(frequency=freq, original=amp[[1]][,2], corrupted=amp[[1]][,1])
   melted_freq_dom <- melt(dat_freq_dom, id="frequency")
@@ -213,6 +227,7 @@ Our investigation hinges on how effectively we can recover the amplitudes in the
 ```
 
 As our original equation specifies, we can clearly see that we have one spike of magnitude $.5$ at $f=50$ Hz, and another spike of magnitude $.7$ at $f=120$ Hz. It is clear that our corrupted signal recovers essentially these same values. 
+
 
 ### Data-Simulating Test
 
@@ -251,19 +266,62 @@ Then we can set up a test dataset as follows:
     return(sub_sig)
   }, USE.NAMES=TRUE, simplify=FALSE)
   
-  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2amp.R')
-  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/amp2div.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/freq2div.R')
   source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/div2dist.R')
   source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/kde_subject.R')
-  
-  # get the amplitude spectrum
-  amp_sig <- obs2amp(signal)
-  div <- amp2div(amp_sig)
-  dist <- div2dist(div)
 ```
 
-And we can then visualize our simulated data:
-```{r, fig.height=6, fig.width=12, message=FALSE}
+
+#### KL Divergence Computation Check
+```{r, message=FALSE}
+  vec_zero <- array(c(0, 0, 0, 0))
+  vec_one <- array(c(1, 1, 1, 1))
+  freq <- array(NaN, dim=c(4,3))
+  freq[,1] <- vec_one
+  freq[,2] <- vec_one
+  freq[,3] <- vec_zero
+  freq_list <- list()
+  freq_list[[1]] <- freq
+  div <- freq2div(freq_list)[[1]]
+  # want the divergence between vec_one and itself to be zero, but between vec_one and vec_zero to be 1
+  expect_equal(div[1,1], div[1,2], div[2,1], div[2,2], div[3,3], 0)
+  expect_equal(div[3,1], div[3,2], div[1,3], div[2,3],1)
+```
+
+#### Hellinger Distance Check
+```{r, message=FALSE}
+  # norm between them is 2, hellinger distance normalizes by a factor of sqrt(2)
+  expect_equal(2/sqrt(2), hell_dist(matrix(vec_zero), matrix(vec_one)))
+  # when we pass the same array, the norm between them is 0, so we expect hellinger distance to be 0
+  expect_equal(0, hell_dist(matrix(vec_one), matrix(vec_one)))
+```
+
+#### Distance Matrix Check
+```{r, message=FALSE}
+  div_list <- list()
+  # two matrices of all ones
+  div_list[[1]] <- array(1, dim=c(4,4))
+  div_list[[2]] <- array(1, dim=c(4,4))
+  # one matrix of all zeros
+  div_list[[3]] <- array(0, dim=c(4,4))
+  
+  dist <- div2dist(div_list)
+  
+  # expect norms between same matrices to all be 0, so distances should all end up as 0.
+  expect_equal(dist[1,1], dist[1,2], dist[2,1], dist[2,2], dist[3,3], 0)
+  
+  # note that the norm between a 4x4 matrix of 1s and a 4x4 matrix of 0s is 4, and since hellinger distance
+  # normalizes by a factor of sqrt(2), we expect entries between these pairs of values to be 4/sqrt(2)
+  expect_equal(dist[3,1], dist[3,2], dist[1,3], dist[2,3], 1)
+```
+
+```{r, fig.height=6, fig.width=12, message=FALSE}  
+  # get the amplitude spectrum
+  amp_sig <- obs2amp(signal)
+  div <- freq2div(amp_sig)
+  dist <- div2dist(div)
+  
   require('Rmisc')
   ids <- ceiling(1:40/2)
   kdeobj <- kde_subject(dist, ids)
@@ -283,12 +341,46 @@ And we can then visualize our simulated data:
   multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
 ```
 
-## Real Data
+### Discriminability as a function of Covariance of Noise given a Spectral Model
 
+```{r, fig.height=6, fig.width=12, message=FALSE}  
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  cov_sim <- c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)
+
+  mnr_sims <- data.frame(cov=c(), mnr=c())
+  ids <- ceiling(1:40/2)
+  
+  for (i in 1:length(cov_sim)) {
+    signal <- sapply(seq(from=1, to=nsub*ntrial, by=1), function(id) {
+        sub <- ceiling(id/ntrial)
+        sub_sig <- apply(X=sapply(1:nsin, function(i) sapply(1:nroi, function(r) a[sub,r,i]*sin(p[sub,r,i]*t),
+                                                                 simplify='array'),
+                                      simplify='array'), MARGIN = c(1,2), FUN=sum)
+        sub_sig <- sub_sig + array(rnorm(n = nt*nroi, mean=0, sd = sqrt(cov_sim[i])), dim=c(nt, nroi))
+        return(sub_sig)
+      }, USE.NAMES=TRUE, simplify=FALSE)
+    
+    amp_sig <- obs2amp(signal)
+    div <- freq2div(amp_sig)
+    dist <- div2dist(div)
+    mnr_sims <- rbind(mnr_sims, data.frame(cov=cov_sim[i], mnr=mnr(rdf(dist, as.character(ids)))))
+  }
+
+  mnr_noise_sim_plot <- ggplot(data = mnr_sims, aes(x=cov, y=mnr)) +
+    geom_line() +
+    xlab("Covariance of Noise") +
+    ylab("Discrimiability") +
+    ggtitle("Simulated Discriminability as a function of Addative 1d Zero-Mean Noise")
+  print(mnr_noise_sim_plot)
+```
+
+# Real Data
+
+## Non Ranking
 Here, we will compare how the spectral approach performs with respect to the discriminability using real data from the BNU1 dataset.
 ```{r, fig.height=6, fig.width=12, message=FALSE}
   source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/open_timeseries.R')
-  inpath <- 'C:/Users/ebrid/Documents/R/FNGS_results/fngs_fnirt_v3/BNU1/desikan_2mm/'
+  inpath <- 'C:/Users/ebrid/Documents/R/HNUoutputs_114/ts_outputs_HNU1/aal-2mm/'
   tsnames <- list.files(inpath, pattern="\\.rds", full.names=TRUE)
   scan_pos = 3
   tsobj <- open_timeseries(tsnames, sub_pos=scan_pos)
@@ -296,17 +388,15 @@ Here, we will compare how the spectral approach performs with respect to the dis
   ids <- tsobj[[3]]
 ```
 
-### Spectral Approach
+### Spectral Approach 
 
-#### Amplitude Spectrum
+#### Raw Amplitude Spectrum
 
 ```{r, fig.height=6, fig.width=12, message=FALSE}
   source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
-  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
-  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
   source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
-  amp_sig <- obs2amp(signal)
-  div <- amp2div(amp_sig)
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
   distmtx <- div2dist(div)
 
   mnrspec <- mnr(rdf(distmtx, ids))
@@ -320,17 +410,19 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
   multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
 ```
 
-#### Power Spectrum
+#### Raw Power Spectrum
 ```{r, fig.height=6, fig.width=12, message=FALSE}
-  pow_sig <- obs2pow(signal)
-  div <- amp2div(pow_sig)
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
   distmtx <- div2dist(div)
 
   mnrspec <- mnr(rdf(distmtx, ids))
@@ -344,13 +436,14 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Spectral Approach Power Spec, d=%.4f', mnrspec))
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Power Spec, d=%.4f', mnrspec))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
   multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
 ```
-
 
 ### Standard Discriminability Approach
 
@@ -359,12 +452,12 @@ Here, we will compare how the spectral approach performs with respect to the dis
   corr <- obs2corr(signal)
 
   ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
-  nroi <- dim(corr[["1"]])[1]
+  nroi <- dim(corr[[1]])[1]
   nscans <- length(corr)
   wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
   
   counter <- 1
-  for (subject in names(corr)) {
+  for (subject in 1:nscans) {
     wgraphs[,,counter] <- corr[[subject]]
     counter <- counter + 1
   }
@@ -381,15 +474,108 @@ Here, we will compare how the spectral approach performs with respect to the dis
   distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
     geom_tile() +
     scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
-    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Discriminability Approach, d=%.4f', mnrraw))
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Discriminability Approach, d=%.4f', mnrraw))
   kde_plot <- ggplot() +
     geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
     ggtitle('Subject Relationships')
   multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
 ```
 
-## Notes
+## Ranking
 
-Primary thing to note here is that we completely ignore bandpassing. I am not sure what thresholds would be "optimal" for bandpassing, so I just skipped that step for now.
-Additionally, I was not sure which spectrum to look at for the frequency domain comparisons. I used the amplitude spectrum instead of the power spectrum for now.
+### Spectral Approach 
 
+#### Ranked Amplitude Spectrum
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Ranked Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+#### Ranked Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Ranked Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Standard Discriminability Approach
+
+#### Ranked Correlation Graphs
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
+  ranked_graphs <- rank_matrices(wgraphs)
+  
+  Dranked <- distance(ranked_graphs)
+  mnrranked <- mnr(rdf(Dranked, ids))
+
+  kdeobj <- kde_subject(Dranked, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(Dranked), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Ranked Discriminability Approach, d=%.4f', mnrranked))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
