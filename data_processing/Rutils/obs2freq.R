@@ -32,7 +32,7 @@
 obs2amp <- function(observations, tr=NaN, lc=0.01, normalize=TRUE) {
   amp_data <- sapply(observations,  function(x) {
     amp_sig <- highpass_fft(x, tr=tr, lc=lc)
-    amp_sig <- 2*abs(amp_sig[1:ceiling(nt/2),,drop=FALSE])
+    amp_sig <- 2*amp_sig
     # normalized
     if (normalize) {
       amp_sig <- amp_sig %*% diag(1/apply(X=amp_sig, MARGIN=2, FUN=sum))
@@ -58,7 +58,7 @@ obs2pow <- function(observations, tr=NaN, lc=0.01, normalize=TRUE) {
   pow_data <- sapply(observations,  function(x) {
     pow_sig <- highpass_fft(x, tr=tr, lc=lc)
     # one sided
-    pow_sig <- abs(pow_sig[1:ceiling(nt/2),,drop=FALSE])^2
+    pow_sig <- pow_sig^2
     # normalized
     if (normalize) {
       pow_sig <- pow_sig %*% diag(1/apply(X=pow_sig, MARGIN=2, FUN=sum))
@@ -86,5 +86,6 @@ highpass_fft <- function(signal, tr=NaN, lc=NaN) {
     freq <- fs*seq(from=0, to=ceiling(nt/2)-1)/nt
     x[freq < lc] <- 0
   }
-  return(x)
+  x <- Re(abs(x))
+  return(x[1:ceiling(nt/2),,drop=FALSE])
 }
