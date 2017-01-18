@@ -11956,11 +11956,24 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4 id="Pseudocode">Pseudocode<a class="anchor-link" href="#Pseudocode">&#182;</a></h4><p>Linear registration works through the following general steps:</p>
-<p>1) Initial search: perform a cursory pass through some transformation combinations to find one that results in a cost function value believed to be close to optimal.</p>
-<p>2) While possible, use gradient descent to find a new combinations of transformations with a cost value closer to optimal.</p>
-<p>3) Terminate when local minimum for cost function is reached.</p>
-<p>The algorithm code is not provided because it is an external tool.</p>
+<h4 id="Pseudocode">Pseudocode<a class="anchor-link" href="#Pseudocode">&#182;</a></h4><h6 id="Inputs:">Inputs:<a class="anchor-link" href="#Inputs:">&#182;</a></h6><p>Input brain scan: $$x \in R^3$$</p>
+<p>Reference brain scan: $$y \in R^3$$</p>
+<h6 id="Outputs:">Outputs:<a class="anchor-link" href="#Outputs:">&#182;</a></h6><p>Transformed input brain scan: $$x' \in R^3$$</p>
+<p>Affine transformation matrix: $$xfm \in R^{4 x 4}$$</p>
+<h6 id="Algorithm:">Algorithm:<a class="anchor-link" href="#Algorithm:">&#182;</a></h6><p>1) M = initial transformation combinations, mincost = initial cost function value, minC = M[0]<br>
+2) For each combination C in M:</p>
+
+<pre><code>    If cost function value of C is less than mincost:  
+        mincost = cost(C)  
+        minC = C  
+
+</code></pre>
+<p>3) While mincost does not equal global optimum:</p>
+
+<pre><code>    Use gradient descent to find new combination of transformations by pivoting from minC  
+
+</code></pre>
+<p>The cost function above measures the similarity between the input and reference brains. The algorithm code is not provided because it is an external tool.</p>
 <p>The FLIRT algorithm should perform very well on the "easy" simulations because they are all simple linear transformations, which is what FLIRT is designed for. The error should be very low. However, the algorithm should not perform well on the "hard" simulations because they are non-linear transformations, which is absolutely not what FLIRT is designed for. The error should be very high.</p>
 <p>Below we see the results from performing the algorithm on the simulation data generated above. Each image represents the "registered" data, which should match the "reference" images from above.</p>
 
@@ -12133,7 +12146,7 @@ Non linear:  1680.5</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4 id="Real-data">Real data<a class="anchor-link" href="#Real-data">&#182;</a></h4><p>Now we show the results of the algorithm on real data. We have two datasets: BNU2 and SWU4. Our reference is the MNI152_2mm brain scan. Below, we show the result of registering one brain from each dataset to the referecen.</p>
+<h4 id="Real-data">Real data<a class="anchor-link" href="#Real-data">&#182;</a></h4><p>Now we show the results of the algorithm on real data. We have two datasets: BNU1 and BNU2. Our reference is the MNI152_2mm brain scan. Below, we show the result of registering one brain to the reference.</p>
 <p>The left images are the reference, the middle images are the preprocessed input brain, and the right images are the registered brain.</p>
 <p>BNU2:</p>
 
@@ -12155,7 +12168,18 @@ Non linear:  1680.5</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>SWU4:</p>
+<p>Based on the above images, we can see that performing FLIRT does indeed make the input brains appear similar to the MNI reference brain. In order to evaluate the usefulness of the algorithm, we will have to quantify its performance on real data. We can do this by using the same quantitative metric as before. Below we see the average error per timestep (difference between scan and reference) per image for both datasets, before and after applying FLIRT.</p>
+<p>BNU1:</p>
+<p>Preprocessed avg: 0<br>
+Preprocessed stdev: 0</p>
+<p>Registered avg: 1,226,346,244<br>
+Registered stdev: 7,982,075</p>
+<p>BNU2:</p>
+<p>Preprocessed avg: 0<br>
+Preprocessed stdev: 0</p>
+<p>Registered avg: 1,228,914,179<br>
+Registered stdev: 10,539,941</p>
+<p>To more effectively measure the usefulness of FLIRT quantitatively, we can see if discriminability increases after performing FLIRT on real data. Below are the results of discriminability analysis on both datasets, before and after FLIRT:</p>
 
 </div>
 </div>
@@ -12165,17 +12189,14 @@ Non linear:  1680.5</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><img src="flirt_pics/realdata2.JPG" alt="real data"></p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Based on the above images, we can see that performing FLIRT does indeed make the input brains appear similar to the MNI reference brain. In order to evaluate the usefulness of the algorithm, we will have to quantify its performance on real data. We can do this by seeing if perform FLIRT improves dataset-wide discriminability:</p>
+<p>BNU1 pre-FLIRT:</p>
+<p><img src="flirt_pics/BNU1_no kf_desikan_2mm.PNG" alt="discrimBNU1"></p>
+<p>BNU1 post-FLIRT:</p>
+<p><img src="flirt_pics/flirtedBNU1_no kf_desikan_2mm.PNG" alt="discrimBNU1flirted"></p>
+<p>BNU2 pre-FLIRT:</p>
+<p><img src="flirt_pics/BNU2_no kf_desikan_2mm.PNG" alt="discrimBNU2"></p>
+<p>BNU2 post-FLIRT:</p>
+<p><img src="flirt_pics/flirtedBNU2_no kf_desikan_2mm.PNG" alt="discrimBNU2flirted"></p>
 
 </div>
 </div>
