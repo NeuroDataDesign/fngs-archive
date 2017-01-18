@@ -12067,8 +12067,100 @@ Bad simulations error:  25.6816326531</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>For real data, we will use small subsets of the BNU2 and SWU4 datasets. MCFLIRT performed well on these brains, as it was able to effectively remove a lot of the unwanted motion.</p>
+<p>For real data, we will use small subsets of the BNU1 and BNU2 datasets. MCFLIRT performed well on these brains, as it was able to effectively remove a lot of the unwanted motion.</p>
 <p>Since it is not viable nor helpful to screenshot different timesteps of the motion-corrected brains, the reader should view the corrected brains on their own using FSLview. An example will be presented to Jovo during the deliverable meeting.</p>
+<p>We can still quantitatively measure the results of MCFLIRT on real data using the metric we previously used on our simulations. Below we see the average error per timestep per image for both datasets, before and after applying MCFLIRT.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">preprocerrors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">921</span><span class="p">,</span> <span class="mi">985</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="s2">&quot;../../braindrive/data/datasets/BNU_2/0025&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/rest_1/BNU_2_0025&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_rest.nii.gz&quot;</span>
+            <span class="n">brain</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+            <span class="n">numtimesteps</span> <span class="o">=</span> <span class="n">brain</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">toterror</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">refscan</span> <span class="o">=</span> <span class="n">brain</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numtimesteps</span><span class="p">):</span>
+                <span class="n">scan</span> <span class="o">=</span> <span class="n">brain</span><span class="p">[:,:,:,</span><span class="n">t</span><span class="p">]</span>
+                <span class="n">scanerror</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">refscan</span> <span class="o">-</span> <span class="n">scan</span><span class="p">))</span>
+                <span class="n">toterror</span> <span class="o">=</span> <span class="n">toterror</span> <span class="o">+</span> <span class="n">scanerror</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">toterror</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">numtimesteps</span><span class="p">)</span>
+            <span class="n">preprocerrors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+    <span class="n">mcflirtederrors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">921</span><span class="p">,</span> <span class="mi">985</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="s2">&quot;mcflirtedBNU2/BNU_2_0025&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_rest.nii.gz&quot;</span>
+            <span class="n">brain</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+            <span class="n">numtimesteps</span> <span class="o">=</span> <span class="n">brain</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">toterror</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">refscan</span> <span class="o">=</span> <span class="n">brain</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numtimesteps</span><span class="p">):</span>
+                <span class="n">scan</span> <span class="o">=</span> <span class="n">brain</span><span class="p">[:,:,:,</span><span class="n">t</span><span class="p">]</span>
+                <span class="n">scanerror</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">refscan</span> <span class="o">-</span> <span class="n">scan</span><span class="p">))</span>
+                <span class="n">toterror</span> <span class="o">=</span> <span class="n">toterror</span> <span class="o">+</span> <span class="n">scanerror</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">toterror</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">numtimesteps</span><span class="p">)</span>
+            <span class="n">mcflirtederrors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+    <span class="n">preprocavg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">preprocerrors</span><span class="p">)</span>
+    <span class="n">mcflirtedavg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mcflirtederrors</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="n">preprocavg</span>
+    <span class="nb">print</span> <span class="n">mcflirtedavg</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>BNU2:</p>
+<p>Preprocessed avg: 2,391,622<br>
+Preprocessed stdev: 701,102</p>
+<p>Registered avg: 2,047,879<br>
+Registered stdev: 521,901</p>
+<p>BNU1:</p>
+<p>Preprocessed avg: 2,219,890<br>
+Preprocessed stdev: 587,854</p>
+<p>Registered avg: 1,970,964<br>
+Registered stdev: 386,772</p>
+<p>To more effectively measure the usefulness of MCFLIRT quantitatively, we can see if discriminability increases after performing MCFLIRT on real data. Below are the results of discriminability analysis on both datasets, before and after MCFLIRT:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>BNU1 pre-MCFLIRT:</p>
+<p><img src="mcflirt_pics/BNU1_no kf_desikan_2mm.PNG" alt="discrimBNU1"></p>
+<p>BNU1 post-MCFLIRT:</p>
+<p><img src="mcflirt_pics/mcflirtedBNU1_no kf_desikan_2mm.PNG" alt="discrimBNU1mcflirted"></p>
+<p>BNU2 pre-MCFLIRT:</p>
+<p><img src="mcflirt_pics/BNU2_no kf_desikan_2mm.PNG" alt="discrimBNU2"></p>
+<p>BNU2 post-MCFLIRT:</p>
+<p><img src="mcflirt_pics/mcflirtedBNU2_no kf_desikan_2mm.PNG" alt="discrimBNU2mcflirted"></p>
 
 </div>
 </div>
