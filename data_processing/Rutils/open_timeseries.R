@@ -49,7 +49,7 @@ open_timeseries <- function(fnames, dataset_pos=1, sub_pos=2, run_pos =3) {
     dataset[i] <- name[dataset_pos]
 
     tts[is.nan(tts)] <- 0
-    if (!any(apply(tts, MARGIN=1, function(x) sum(abs(x))) == 0)) {
+    if (TRUE) {#(!any(apply(tts, MARGIN=1, function(x) sum(abs(x))) == 0)) {
       counter <- counter + 1
       ts[[counter]] <-t(tts)
       subjects[counter] <- name[sub_pos] # subject name must be a string, so do not convert to numeric
