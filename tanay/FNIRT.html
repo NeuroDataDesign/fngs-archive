@@ -12126,7 +12126,7 @@ div#notebook {
 <p>Below, we can see the post-FNIRT visual results for 1 sample each from the raw and post-FLIRT BNU1 datasets:</p>
 <h6 id="Post-FNIRT-Raw-BNU1:">Post-FNIRT Raw BNU1:<a class="anchor-link" href="#Post-FNIRT-Raw-BNU1:">&#182;</a></h6><p><img src="fnirt_pics/fnirtedBNU1bad.png" alt="fnirted BNU1 bad"></p>
 <h6 id="Post-FNIRT-Post-FLIRT-BNU1:">Post-FNIRT Post-FLIRT BNU1:<a class="anchor-link" href="#Post-FNIRT-Post-FLIRT-BNU1:">&#182;</a></h6><p><img src="fnirt_pics/fnirtedBNU1good.png" alt="fnirted BNU1 good"></p>
-<p>We can also see the sanity check results for the two datasets. Below are the pre-FNIRT and post-FNIRT cost-function values for both datasets:</p>
+<p>As we can see above, the registration results are as expected (qualitatively). We can also see the sanity check results for the two datasets. Below are the pre-FNIRT and post-FNIRT cost-function values for both datasets:</p>
 <h6 id="Raw-BNU1:">Raw BNU1:<a class="anchor-link" href="#Raw-BNU1:">&#182;</a></h6><p>Pre-FNIRT average cost: 1,084,429,759<br>
 Post-FNIRT average cost: 879,361,863</p>
 <h6 id="Post-FLIRT-BNU1:">Post-FLIRT BNU1:<a class="anchor-link" href="#Post-FLIRT-BNU1:">&#182;</a></h6><p>Pre-FNIRT average cost: 1,368,988,606<br>
@@ -12136,6 +12136,7 @@ Post-FNIRT average cost: 1,302,368,706</p>
 <h6 id="Post-FNIRT-Raw-BNU1:">Post-FNIRT Raw BNU1:<a class="anchor-link" href="#Post-FNIRT-Raw-BNU1:">&#182;</a></h6><p><img src="fnirt_pics/fnirtedBNU1bad_no_kf_desikan_2mm.png" alt="fnirted BNU1 bad"></p>
 <h6 id="Pre-FNIRT-Post-FLIRT-BNU1:">Pre-FNIRT Post-FLIRT BNU1:<a class="anchor-link" href="#Pre-FNIRT-Post-FLIRT-BNU1:">&#182;</a></h6><p><img src="fnirt_pics/flirtedBNU1_no_kf_desikan_2mm.png" alt="fnirted BNU1 good"></p>
 <h6 id="Post-FNIRT-Post-FLIRT-BNU1:">Post-FNIRT Post-FLIRT BNU1:<a class="anchor-link" href="#Post-FNIRT-Post-FLIRT-BNU1:">&#182;</a></h6><p><img src="fnirt_pics/fnirtedBNU1good_no_kf_desikan_2mm.png" alt="fnirted BNU1 good"></p>
+<p>We can clearly see that all the results have been consistent with our expectations. Our understanding appears to be appropriate. I expect the algorithm to perform similarly well on other real datasets. Not only is it widely used in the fMRI analysis community, but we have also seen that it met are qualitative and quantitative expectations. We could perhaps improve performance further by diving deeper into some of the more specific options that are available in the FNIRT tool, once we have a better understanding of our datasets themselves.</p>
 
 </div>
 </div>
