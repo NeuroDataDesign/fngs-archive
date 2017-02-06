@@ -23,11 +23,11 @@
 #                 for a particular subject.
 #
 # OUtputs:
-#   zscore_data[[subs]][timesteps, rois]: the locally z-scored roi timeseries. 
+#   corr_data[[subs]][rois, rois]: the locally correlated roi timeseries. 
 #
 obs2corr <- function(observations) {
 
-  corr_data <- sapply(names(observations),  function(x) abs(cor(observations[[x]])),
+  corr_data <- sapply(observations,  function(x) abs(cor(x)),
                       simplify=FALSE, USE.NAMES=TRUE)
   
   return(corr_data)
