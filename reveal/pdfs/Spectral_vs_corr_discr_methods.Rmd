@@ -1,0 +1,756 @@
+---
+title: "Spectral_vs_corr_disc_methods_paper"
+author: "Eric Bridgeford"
+date: "February 12, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setting
+
+## Task
+
+In many areas that use computational statistics, the first step of exploratory analysis involves various methods to determine the quality of the data gathered. Unsurprisingly, data quality is generally one of the most difficult things to assess. Researchers want data that is both precise and accurate; they want data collected to be robust (taking the measure many times will lead to a similar result), and effecive in measuring what it is supposed to be measuring. The discriminability (Shangsi Wang et al.) provides an intuitive framework for the former; it allows researchers to assess the quality of repeated observations of a measure in relation to the entire population.
+
+Essentially the dataset setup is as follows:
+
+\begin{equation}
+  T_{n,t}^{(i)} = g_{\psi,t}(f_{\phi,t}(v_n))
+\end{equation}
+
+That is, we take an explicit observation $x_n$ of some latent signal $v_n$ for subject $n$. However, this signal is distorted, first by our measurement distortion ($f_{\phi, t}$) at a particular measurement session $t$ and second by our processing options chosen ($g_\psi$). We note that both the measurement and processing distortions are random and unknown (that is, the meausure $T_{n,t}$ taken of latent signal $v_n$ at session $t$ does not necessarily match the signal taken at $t'$, $T_{n, t'}$). 
+
+## Loss function
+
+There is no loss function for this algorithm (rather, we just have a statistical goal, and choose the pipeline that fits this statistical goal).
+
+## Statistical Goal
+
+In any investigation, we want to find the combinations of measurements as well as processing tools to maximize the reliability of our measures; we want $T_{n, t'}$ and $x_{n, t}$ to be as close as possible to ensure that any claims we make on the data are robust and not simply a factor of noise. Therefore, we can simply consider the "best" pipeline to be the pipeline that answers the following optimization problem:
+
+\begin{equation}
+  \phi_{best}, \psi_{best} = \max_{\phi, \psi} r(\phi, \psi)
+\end{equation}
+
+and in this investigation in particular, we are most interested in selecting $\psi$ from the options of a spectral vs correlational approach, as well as ranked vs unranked.
+
+## Desiderata
+
+Here, there are not many desiderata that we need to be concerned with; as this is not an algorithm that needs to be run repeatedly (and, optimally, will only need to be run once total for a given pipeline), we are mostly concerned with just having the algorithm that maximizes our discriminability. However, within limits, we should still be concerned with whether the algorithm:
+
++ works well in real world settings
++ performs well on simulations given our simplified understanding of the real world setup, that is, that timeseries are a weighted sum of sinusoids
++ is robust to the assumption that all fMRI timeseries are a weighted sum of sinusoids
++ is relatively fast (relatively means that it finishes in sub one hour; needs to be fast enough that we can reasonably check a pipeline quickly given an arbitrarily large dataset)
++ the algorithm can be called with just a list of timeseries and a list of associated subject labels
+
+# Approach
+
+## Algorithm
+
+### High Level Description
+
+With this algorithm, we consider the fft for each ROI, consider only the first half of the frequency spectrum (note that fft gives us a symmetric result; we only want the lower half of this symmetric output), and normalize to sum to one. We can use either the amplitude or power spectrum. Next, we compute the Kullback-Leibler divergence between each pair of regions. The kullback-leibler divergence can simply be defined as:
+\begin{equation}
+  D_{KL}(P || Q) = \sum_{i} P(i) \log \frac{P(i)}{Q(i)}
+\end{equation}
+
+for each region $P, Q$ in our dataset. 
+
+Then we define the distance matrix to be the hellinger distance between each pair of subjects, where we define the normalized hellinger distance to be:
+\begin{equation}
+  H(P, Q) = \frac{1}{\sqrt{2}} || \sqrt{P} - \sqrt{Q}||_2
+\end{equation}
+or simply a direct relation to the euclidian norm of the difference of the square root of the respective matrices as column vectors. 
+
+### Pseudo Code
+
+```{r, eval=FALSE}
+  # signal[timesteps, roi] is an array containing the timesteps data for a particular subject
+def amp_spectrum(signal):
+  for roi in rois:
+    # compute fft of the signal
+    nt <- dim(signal)[1]
+    fft_roi <- fft(signal[,roi])/nt
+    # dim_fft[1] is number of timesteps
+    fft_roi <- fft_roi[1:ceil(dim_fft[1]/2), ]
+    # get the amplitude spectrum
+    amp[roi,] <- 2*abs(fft_roi)
+    # normalize, if desired by the sum of the fft up to this point
+    
+def pow_spectrum(signal):
+  for roi in rois:
+    # compute fft of the signal
+    nt <- dim(signal)[1]
+    fft_roi <- fft(signal[,roi])/nt
+    # dim_fft[1] is number of timesteps
+    fft_roi <- fft_roi[1:ceil(dim_fft[1]/2), ]
+    # get the power spectrum
+    amp[roi,] <- abs(fft_roi)^2
+    # normalize, if desired by the sum of the fft up to this point
+
+# roi1 is a single-sided fft for the first roi
+# roi2 is a single-sided fft for the second roi
+def divergence(roi1, roi2):
+  sum(roi1*log(roi1/roi2))
+
+# fft_signal is an array of single-sided ffts for each roi
+def divergence_matrix(fft_signal):
+  similarity <- array(length(rois), length(rois)) # square similarity matrix
+  for roi1 in rois:
+    for roi2 in rois:
+      similarity[roi1, roi2] <- divergence(fft_signal[,roi1], fft_signal[,roi2])
+    endfor
+  endfor
+  return(similarity)
+
+# P[timesteps, timesteps] is the first similarity matrix
+# Q[timesteps, timesteps] is the second similarity matrix
+def hdist(P, Q):
+  # note that the frobenius norm is the matrix interpretation of the euclidian norm or the 2-norm
+  1/sqrt(2) * norm(sqrt(P) - sqrt(Q), "f")
+
+# div_mtxs[nsubs, nrois, nrois] is the collection of the divergence matrices for each subject
+def distance_matrix(div_mtxs):
+  dist <- array(nsubs, nsubs)
+  for sub in subs:
+    for sub in subs:
+      dist[sub1, sub2] <- hdist(signals[sub1,,], signals[sub2,,])
+    endfor
+  endfor
+  return(dist)
+```
+
+## Evaluation
+
+### Simulation Performance
+
+For simulation performance, we will generate examples from various combinations of sinusoids, with varying period as well as amplitude, that is randomly determined per subject. We will simulate multi-trial data by permuting the combination of sinusoids for each subject with random zero-mean noise. Quantitative performance will be determined as the dataset discriminability as a function of the variance of the zero-mean noise added. We would expect at lower levels of noise to obtain perfect discriminability, and at higher levels of noise to obtain poor discriminability. 
+
+### Real Data Performance
+
+Real data performance will be analyzed using exclusively the discriminability. The best post-processing pipeline will be reported as the pipeline that maximizes the discriminability for a single dataset.
+
+# Results
+
+
+## Simulated Numerical Support
+
+### Proof of FFT and related Algorithms
+
+While not required by methods_paper.md, here we will show some example simulations to demonstrate that our FFT code is working appropriately and that we are using things properly. 
+
+We will simply check how effectively we can recover the amplitudes of a basic combination of sinusoids.
+
+We define the following equation, and if all goes well, our amplitude spectrum plot should show the correct amplitudes at the proper frequencies.
+
+\begin{equation}
+  y = .5 \sin(2 \pi 50 t) + .7 \sin(2\pi 120 t)
+\end{equation}
+
+We then corrupt this signal with zero mean white noise of variance $2$:
+
+\begin{equation}
+  x = y + \mathcal{N}(\mu=0, \Sigma=2)
+\end{equation}
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/freq2div.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/div2dist.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/kde_subject.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
+  require('ggplot2')
+  require('reshape2')
+  require('Rmisc')
+  fs <- 1000  # sampling rate
+  tp = 1/fs  # sampling period
+  L=1000  # number of time points total
+  t=seq(from=0, to=L-1)*tp  # the time points
+  y = 0.5*sin(2*pi*50*t) + 0.7*sin(2*pi*120*t)
+  # covariance of 3 is a sd of sqrt(2)
+  x = y + rnorm(L, mean=0, sd = sqrt(2))
+  dat_time_dom = data.frame(t=t[1:50], original=y[1:50], corrupted=x[1:50])
+  melted_time_dom = melt(dat_time_dom, id="t")
+  time_plot <- ggplot(data = melted_time_dom, aes(x=t, y=value, group=variable, color=variable)) +
+    geom_line() +
+    xlab('time(sec)') +
+    ylab('Signal Strength') +
+    ggtitle("Signal in Time Domain")
+  print(time_plot)
+```
+
+Our investigation hinges on how effectively we can recover the amplitudes in the frequency domain from our corrupted signal. We run several tests on our methods:
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
+  # set up so we can use the same code we use on timeseries data on the testing data
+  signal <- list()
+  original_sig <- array(NaN, dim=c(L, 2))
+  original_sig[,1] <- y
+  original_sig[,2] <- x
+  signal[[1]] <- original_sig
+  amp <- obs2amp(signal, tr=tp, lc=5, normalize=FALSE)
+  freq <- fs*seq(from=0, to=ceiling(L/2)-1)/L
+```
+
+#### Bandpass Check
+
+First, we want to verify that our code for bandpassing works correctly. Bandpassing is relatively simple, so we don't need any complex tests here, just verifying that the appropriate amplitudes are zero will suffice:
+
+```{r, message=FALSE}
+  require(testthat)
+  expect_true(all(amp[[1]][,1][freq < 5] == 0))  # we highpassed above this cutoff, so should be zero below
+```
+We check that the amplitudes match up appropriately:
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  amp <- obs2amp(signal, normalize=FALSE)
+  
+  dat_freq_dom <- data.frame(frequency=freq, original=amp[[1]][,1], corrupted=amp[[1]][,2])
+  melted_freq_dom <- melt(dat_freq_dom, id="frequency")
+  orig_freq_dom <- melted_freq_dom[melted_freq_dom$variable == "original",]
+  cor_freq_dom <- melted_freq_dom[melted_freq_dom$variable == "corrupted",]
+  freq_plot_orig <- ggplot(data = orig_freq_dom, aes(x=frequency, y=value, group=variable, color=variable)) +
+    geom_line(color='blue') +
+    xlab('Frequency(\'Hz\')') +
+    ylab('Amplitude') +
+    theme(legend.position="None") +
+    ggtitle('Amplitude Spectrum in Frequency Domain of Original Signal')
+  freq_plot_cor <- ggplot(data = cor_freq_dom, aes(x=frequency, y=value, group=variable, color=variable)) +
+    geom_line() +
+    xlab('Frequency(\'Hz\')') +
+    ylab('Amplitude') +
+    theme(legend.position="None") +
+    ggtitle('Amplitude Spectrum in Frequency Domain of Corrupted Signal')
+  
+  freq_plot <- multiplot(freq_plot_orig, freq_plot_cor, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+  print(freq_plot)
+```
+
+As our original equation specifies, we can clearly see that we have one spike of magnitude $.5$ at $f=50$ Hz, and another spike of magnitude $.7$ at $f=120$ Hz. It is clear that our corrupted signal recovers essentially these same values. 
+
+
+#### KL Divergence Computation Check
+```{r, message=FALSE}
+  vec_zero <- array(c(0, 0, 0, 0))
+  vec_one <- array(c(1, 1, 1, 1))
+  freq <- array(NaN, dim=c(4,3))
+  freq[,1] <- vec_one
+  freq[,2] <- vec_one
+  freq[,3] <- vec_zero
+  freq_list <- list()
+  freq_list[[1]] <- freq
+  div <- freq2div(freq_list)[[1]]
+  # want the divergence between vec_one and itself to be zero, but between vec_one and vec_zero to be 1
+  expect_equal(div[1,1], div[1,2], div[2,1], div[2,2], div[3,3], 0)
+  expect_equal(div[3,1], div[3,2], div[1,3], div[2,3],1)
+```
+
+#### Hellinger Distance Check
+```{r, message=FALSE}
+  # norm between them is 2, hellinger distance normalizes by a factor of sqrt(2)
+  expect_equal(2/sqrt(2), hell_dist(matrix(vec_zero), matrix(vec_one)))
+  # when we pass the same array, the norm between them is 0, so we expect hellinger distance to be 0
+  expect_equal(0, hell_dist(matrix(vec_one), matrix(vec_one)))
+```
+
+#### Distance Matrix Check
+```{r, message=FALSE}
+  div_list <- list()
+  # two matrices of all ones
+  div_list[[1]] <- array(1, dim=c(4,4))
+  div_list[[2]] <- array(1, dim=c(4,4))
+  # one matrix of all zeros
+  div_list[[3]] <- array(0, dim=c(4,4))
+  
+  dist <- div2dist(div_list)
+  
+  # expect norms between same matrices to all be 0, so distances should all end up as 0.
+  expect_equal(dist[1,1], dist[1,2], dist[2,1], dist[2,2], dist[3,3], 0)
+  
+  # note that the norm between a 4x4 matrix of 1s and a 4x4 matrix of 0s is 4, and since hellinger distance
+  # normalizes by a factor of sqrt(2), we expect entries between these pairs of values to be 4/sqrt(2)
+  expect_equal(dist[3,1], dist[3,2], dist[1,3], dist[2,3], 1)
+```
+
+### Geometric Intuition
+
+This algorithm will work incredibly well in cases when our input timeseries is a weighted combination of sinusoids, where the particular weights and periods are unique to each subject and the level of noise is relatively low. This is because the fft by nature is able to effectively recover the amplitudes/powers and periods relating to each component in the fourier domain of an input signal. Particularly, our algorithm will perform best when each subject's fft is maximally distinguishable; that is, the power/amplitude associated with each spectral component is maximally different for each subject. This test will perform poorly when each subject's fft is minimally distinguishable; that is, the power/amplitude associated with each spectral component is close for each subject. 
+
+### Positive Illustrative Example
+
+#### Generating Function
+
+
+To check our spectral method, we consider the following experimental setup:
+
+\begin{equation}
+  t_{s, r} = \sum_{i} a_{s, r,i} \sin(p_{s, r,i}) + \mathcal{N}(0, \Sigma_{s})
+\end{equation}
+
+In other words, we assume that the timeseries $t$ for each subject $s$ and each roi $r$ is simply a combination of sinusoids of period $p_{s, r, i}$ and weighted by the amplitudes $a_{s, r,i}$. Additionally, each observation (a single "trial") is permuted by some factor of zero-mean random noise with covariance $\Sigma_s$.
+
+#### Simulation
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  nsub <- 20
+  ntrial <- 2
+  nroi <- 20
+  nt <- 200
+  nsin <- 5
+  signal <- array(NaN, dim=c(nsub*ntrial, nroi, nt))
+  
+  # array of the amplitudes
+  a <- array(runif(nsub*nroi*nsin, min=0, max=1), dim=c(nsub, nroi, nsin))
+  # sample random periods between 0 and nt/2, nsin per subject
+  p <- array(sample.int(n = nt/2, size=(nsin*nroi*nsub), replace=TRUE), dim=c(nsub, nroi, nsin))
+  # sample random phase shifts between 0 and nt/2, nsin per subject
+  s <- array(sample.int(n = nt/2, size=(nsin*nroi*nsub), replace=TRUE), dim=c(nsub, nroi, nsin))
+  
+  # define every subject to have approximately the same noise
+  sd_err <-1
+  
+  t <- 0:(nt-1)
+  
+  signal <- sapply(seq(from=1, to=nsub*ntrial, by=1), function(id) {
+    sub <- ceiling(id/ntrial)
+    sub_sig <- apply(X=sapply(1:nsin, function(i) sapply(1:nroi, function(r) a[sub,r,i]*sin(p[sub,r,i]*(t - s[sub, r, i])),
+                                                             simplify='array'),
+                                  simplify='array'), MARGIN = c(1,2), FUN=sum)
+    sub_sig <- sub_sig + array(rnorm(n = nt*nroi, mean=0, sd = sd_err), dim=c(nt, nroi))
+    return(sub_sig)
+  }, USE.NAMES=TRUE, simplify=FALSE)
+  
+  ids <- ceiling(1:40/2)
+    
+  # get the amplitude spectrum
+  amp_sig <- obs2amp(signal)
+  div <- freq2div(amp_sig)
+  distf <- div2dist(div)
+  mnr_sim=mnr(rdf(distf, as.character(ids)))
+  
+  require('Rmisc')
+  kdeobj <- kde_subject(distf, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distf), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(paste('Spectral Approach, d=', mnr_sim))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+  
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  
+  Draw <- distance(wgraphs)
+  mnrraw <- mnr(rdf(Draw, ids))
+  
+  distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(paste('Correlational Approach, d=', mnrraw))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Negative Illustrative Example
+
+#### Generating Function
+
+For a negative example, consider the case where measurement error is high, that is, given the generating model:
+
+\begin{equation}
+  t_{s, r} = \sum_{i} a_{s, r,i} \sin(p_{s, r,i}) + \mathcal{N}(0, \Sigma_{s})
+\end{equation}
+
+we have $\mathcal{N}(0, \Sigma_{s}) > a_{s, r,i} \sin(p_{s, r,i})$. 
+
+#### Simulation
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  nsub <- 20
+  ntrial <- 2
+  nroi <- 20
+  nt <- 200
+  nsin <- 5
+  signal <- array(NaN, dim=c(nsub*ntrial, nroi, nt))
+  
+  # array of the amplitudes
+  a <- array(runif(nsub*nroi*nsin, min=0, max=1), dim=c(nsub, nroi, nsin))
+  # sample random periods between 0 and nt/2, nsin per subject
+  p <- array(sample.int(n = nt/2, size=(nsin*nroi*nsub), replace=TRUE), dim=c(nsub, nroi, nsin))
+  # sample random phase shifts between 0 and nt/2, nsin per subject
+  s <- array(sample.int(n = nt/2, size=(nsin*nroi*nsub), replace=TRUE), dim=c(nsub, nroi, nsin))
+  
+  # define every subject to have approximately the same noise
+  sd_err <-1.75
+  
+  t <- 0:(nt-1)
+  
+  signal <- sapply(seq(from=1, to=nsub*ntrial, by=1), function(id) {
+    sub <- ceiling(id/ntrial)
+    sub_sig <- apply(X=sapply(1:nsin, function(i) sapply(1:nroi, function(r) a[sub,r,i]*sin(p[sub,r,i]*(t - s[sub, r, i])),
+                                                             simplify='array'),
+                                  simplify='array'), MARGIN = c(1,2), FUN=sum)
+    sub_sig <- sub_sig + array(rnorm(n = nt*nroi, mean=0, sd = sd_err), dim=c(nt, nroi))
+    return(sub_sig)
+  }, USE.NAMES=TRUE, simplify=FALSE)
+  
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/freq2div.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/div2dist.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/kde_subject.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
+  
+  ids <- ceiling(1:40/2)
+    
+  # get the amplitude spectrum
+  amp_sig <- obs2amp(signal)
+  div <- freq2div(amp_sig)
+  distf <- div2dist(div)
+  mnr_sim=mnr(rdf(distf, as.character(ids)))
+  
+  require('Rmisc')
+  kdeobj <- kde_subject(distf, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distf), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(paste('Spectral Approach, d=', mnr_sim))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+  
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  
+  Draw <- distance(wgraphs)
+  mnrraw <- mnr(rdf(Draw, ids))
+  
+  distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") + ylab("Scan") + ggtitle(paste('Correlational Approach, d=', mnrraw))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+We can see that even though our algorithm performs relatively poorly, our metric still outperforms the benchmark correlational approach under negative circumstances.
+
+## Effectiveness
+
+### Extensive Simulation
+
+In this extensive simulation, we will extend our examples from before and do a parameter sweep to show covariance of addative zero-mean noise and its impact on the discriminability of the spectral, and correlational, approaches to computing discrminability. We average over 10 simulations to ensure that our measurements are robust.
+
+```{r, fig.height=6, fig.width=12, message=FALSE}  
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  cov_sim <- c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)
+
+  mnr_sims <- data.frame(cov=c(), mnr_spectral=c(), mnr_corr=c())
+  ids <- ceiling(1:40/2)
+  
+  for (i in 1:length(cov_sim)) {
+    mnr_spec <- array(0, dim=c(10, 1))
+    mnr_raw <- array(0, dim=c(10, 1))
+    for(j in 1:10) {
+      signal <- sapply(seq(from=1, to=nsub*ntrial, by=1), function(id) {
+          sub <- ceiling(id/ntrial)
+          sub_sig <- apply(X=sapply(1:nsin, function(i) sapply(1:nroi, function(r) a[sub,r,i]*sin(p[sub,r,i]*t),
+                                                                   simplify='array'),
+                                        simplify='array'), MARGIN = c(1,2), FUN=sum)
+          sub_sig <- sub_sig + array(rnorm(n = nt*nroi, mean=0, sd = sqrt(cov_sim[i])), dim=c(nt, nroi))
+          return(sub_sig)
+        }, USE.NAMES=TRUE, simplify=FALSE)
+      
+      amp_sig <- obs2amp(signal)
+      div <- freq2div(amp_sig)
+      distf <- div2dist(div)
+      mnr_spec[j] = mnr(rdf(distf, as.character(ids)))
+      
+        
+      corr <- obs2corr(signal)
+    
+      ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+      nroi <- dim(corr[[1]])[1]
+      nscans <- length(corr)
+      wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+      
+      counter <- 1
+      for (subject in 1:nscans) {
+        wgraphs[,,counter] <- corr[[subject]]
+        counter <- counter + 1
+      }
+      
+      Draw <- distance(wgraphs)
+      mnr_raw[j] <- mnr(rdf(Draw, ids))
+    }
+    
+    
+    mnr_sims <- rbind(mnr_sims, data.frame(cov=cov_sim[i], mnr_spectral=mean(mnr_spec), mnr_corr=mean(mnr_raw)))
+  }
+
+  mnr_noise_sim_plot <- ggplot(data = melt(mnr_sims, id.vars="cov"), aes(x=cov, y=value, colour=variable, group=variable)) +
+    geom_line() +
+    xlab("Covariance of Noise") +
+    ylab("Discrimiability") +
+    ggtitle("Simulated Discriminability as a function of Addative 1d Zero-Mean Noise")
+  print(mnr_noise_sim_plot)
+```
+
+We can clearly see that given either processing option, that there is a logistic relationship between discriminability and the covariance of the addative noise, however, the spectral approach outperforms the correlational approach.
+
+# Real Data
+
+## Non Ranking
+Here, we will compare how the spectral approach performs with respect to the discriminability using real data from the BNU1 dataset.
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/open_timeseries.R')
+  inpath <- 'C:/Users/ebrid/Documents/R/HNUoutputs_114/ts_outputs_HNU1/desikan-2mm/'
+  tsnames <- list.files(inpath, pattern="\\.rds", full.names=TRUE)
+  scan_pos = 3
+  tsobj <- open_timeseries(tsnames, sub_pos=scan_pos)
+  signal <- tsobj[[1]]
+  ids <- tsobj[[3]]
+```
+
+### Spectral Approach 
+
+#### Raw Amplitude Spectrum
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
+  distmtx <- div2dist(div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+#### Raw Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
+  distmtx <- div2dist(div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Standard Discriminability Approach
+
+#### Raw Correaltion Graphs
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  
+  Draw <- distance(wgraphs)
+  mnrraw <- mnr(rdf(Draw, ids))
+
+  kdeobj <- kde_subject(Draw, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Discriminability Approach, d=%.4f', mnrraw))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+## Ranking
+
+### Spectral Approach 
+
+#### Ranked Amplitude Spectrum
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Distance Matrix between Pairs of Scans, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+#### Ranked Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Ranked Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Standard Discriminability Approach
+
+#### Ranked Correlation Graphs
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
+  ranked_graphs <- rank_matrices(wgraphs)
+  
+  Dranked <- log(distance(ranked_graphs))
+  mnrranked <- mnr(rdf(Dranked, ids))
+
+  kdeobj <- kde_subject(Dranked, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(Dranked), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),
+                         name="log dist") +
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Distance Matrix between Pairs of Scans, d=%.4f', mnrranked))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Density Estimate of Scan Distances')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
