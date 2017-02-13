@@ -11772,11 +11772,11 @@ Slice timing correction uses the following formula for the Hann-windowed sinc in
 <p>where $\omega(n)=0.5\left(1-cos\left(\frac{2\pi n}{N-1}\right)\right)$ is the Hann window and $\alpha$ describes the transition width.</p>
 <h2 id="Performance-&amp;-Analysis">Performance &amp; Analysis<a class="anchor-link" href="#Performance-&amp;-Analysis">&#182;</a></h2><p>The slice-timing correction algorithm should generally perform well for short TR times (less than 2 seconds), because under this condition, the data will not be changed to a significant degree. It has the potential to perform poorly for larger TR times and when used before motion correction since it can lead to the propagation of artifacts.</p>
 <p>To qualitatively visualize the effects of slice timing correction, we can view plots of the same hemodynamic response with respect to time across several slices before and after the correction. After the correction, the plots should overlap each other more closely. Quantitatively, slice timing correction should increase the discriminability between intra- and inter-subject scans. For the simulations, it should decrease the mean squared error between the actual data and the test data.</p>
-<h2 id="Raw-Data">Raw Data<a class="anchor-link" href="#Raw-Data">&#182;</a></h2><p>For the good performance, we will test the slice timing correction algorithm on the BNU-2 dataset. This dataset has a TR of 1500 ms (1.5 sec) and is interleaved ascending. The BNU-2 dataset consists of 61 subjects, tested at a baseline and retested three months later. For this analysis, we will only use the retest data since the baseline data had a greater TR. Each of the 4D scans have the following dimensions: 64 x 64 x 25 brain at 420 timesteps.</p>
+<h2 id="Raw-Data">Raw Data<a class="anchor-link" href="#Raw-Data">&#182;</a></h2><p>For the good performance, we will test the slice timing correction algorithm on the BNU_2 dataset. This dataset has a TR of 2000 ms (2.0 sec) for the baseline scans and a TR of 1500 ms (1.5 sec) for the retest scans. The data is interleaved ascending and consists of 61 subjects. Each of the 4D baseline/retest scans have the following dimensions: 64 x 64 x 33/25 brain at 240/420 timesteps.</p>
 <p><img src="http://neurodatadesign.github.io/fngs/img/BNU2.png"></p>
-<p>For the poor performance, we will test the slice timing correction algorithm on the NKI-1 dataset. This dataset has a TR of 2500 ms (2.5 sec) and is interleaved ascending. The NKI-1 dataset consists of 24 subjects. Each of the 4D scans have the following dimensions: 74 x 74 x 40 brain at 900 timesteps.</p>
+<p>For the poor performance, we will test the slice timing correction algorithm on the DC_1 dataset. This dataset has a TR of 2500 ms (2.5 sec) and is interleaved ascending. The DC_1 dataset consists of 114 subjects. Each of the 4D scans have the following dimensions: 80 x 80 x 36 brain at 120 timesteps.</p>
 <p><img src="http://neurodatadesign.github.io/fngs/img/NKIENH.png"></p>
-<p>I expect that the algorithm will run well on the BNU-2 dataset since the TR is small. The discriminability should increase by more than that of the NKI-1 dataset since the NKI-1 dataset has a longer TR time.</p>
+<p>I expect that the algorithm will run well on the BNU_2 dataset since the TR is small. The discriminability should increase by more than that of the DC_1 dataset since the DC_1 dataset has a longer TR time.</p>
 <h1 id="Simulation">Simulation<a class="anchor-link" href="#Simulation">&#182;</a></h1><p>For the following simulations, we will use three sine waves that are offset temporally to represent three scans acquired at slightly different times. We will then run the slice timing correction algorithm on the generated data assuming a sequential acquisition method. For the good performance, with no noise and short TR time (1.5 seconds), the sine waves should almost completely overlap. For the bad performance, with noise applied to the middle sine wave to simulate pre-motion-corrected data and a longer TR time (3 seconds), the sine waves should not move as close to each other. Quantitatively, the mean squared error should decrease significantly for the good performance, while it should decrease only slightly for the poor performance.</p>
 <h2 id="Good-performance">Good performance<a class="anchor-link" href="#Good-performance">&#182;</a></h2>
 </div>
@@ -14293,7 +14293,57 @@ Mean squared error post-STC: 0.00632475526325
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Qualitatively, we can see that the three slices are not as overlapped as in the previous simulation. Quantitatively, we can see that the slice timing correction lowers the mean squared error, but only slightly. When compared to the previous simulation, which lowered the MSE by a factor of 4, this simulation did not perform as well.</p>
 <h2 id="Summary">Summary<a class="anchor-link" href="#Summary">&#182;</a></h2><p>The simulations performed as expected. We can see both qualitatively and quantitatively that noise in the reference scan, which represents error introduced by motion in a real fMRI scan, hinders the algorithm from performing to its full ability. However, the algorithm is fairly resilient and still results in a decrease in the mean squared error, even in the poor performance simulation. The longer the TR time, the greater the separation between the scans. From the simulations, we can see that this results in a worse performance from the algorithm. This makes intuitive sense.</p>
-<h1 id="Real-Data">Real Data<a class="anchor-link" href="#Real-Data">&#182;</a></h1>
+<h1 id="Real-Data">Real Data<a class="anchor-link" href="#Real-Data">&#182;</a></h1><p>Here we see a subset of the BNU_2 dataset before and after slice timing correction has been applied. The discriminability is calculated using the correlation matrices of the processed fMRI data to determine the mean normalized rank between intra- and inter-subject scans.</p>
+<p>The following R code was used to generate the plots:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">graphml2mnr</span> <span class="o">&lt;-</span> <span class="n">function</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="p">{</span>
+  
+  <span class="n">require</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span>
+  <span class="n">require</span><span class="p">(</span><span class="n">reshape2</span><span class="p">)</span>
+  <span class="n">require</span><span class="p">(</span><span class="n">igraph</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/hell_dist.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/thresh_mnr.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/GitHub/Reliability/Code/R/processing/open_graphs.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/R/prod_pkde.R&#39;</span><span class="p">)</span>
+  <span class="n">source</span><span class="p">(</span><span class="s1">&#39;C:/Users/Eric/Documents/R/multiplot.R&#39;</span><span class="p">)</span>
+  
+  <span class="n">fnames</span> <span class="o">=</span> <span class="nb">list</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.graphml&quot;</span><span class="p">,</span> <span class="n">full</span><span class="o">.</span><span class="n">names</span><span class="o">=</span><span class="n">TRUE</span><span class="p">)</span>
+  <span class="n">parsed</span> <span class="o">=</span> <span class="n">open_graphs</span><span class="p">(</span><span class="n">fnames</span><span class="p">,</span> <span class="n">scan_pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">ids</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[[</span><span class="mi">2</span><span class="p">]]</span>
+  <span class="n">corr</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+  <span class="n">dist</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span>
+  <span class="n">m</span> <span class="o">=</span> <span class="n">mnr</span><span class="p">(</span><span class="n">rdf</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">ids</span><span class="p">))</span>
+  <span class="n">pdist</span> <span class="o">&lt;-</span> <span class="n">ggplot</span><span class="p">(</span><span class="n">melt</span><span class="p">(</span><span class="n">dist</span><span class="p">),</span> <span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">Var2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">Var1</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">value</span><span class="p">))</span> <span class="o">+</span> <span class="n">geom_tile</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span> <span class="o">+</span>
+    <span class="n">scale_fill_gradientn</span><span class="p">(</span><span class="n">colours</span><span class="o">=</span><span class="n">c</span><span class="p">(</span><span class="s2">&quot;darkblue&quot;</span><span class="p">,</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span><span class="s2">&quot;green&quot;</span><span class="p">,</span><span class="s2">&quot;yellow&quot;</span><span class="p">),</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Distance&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="n">paste</span><span class="p">(</span><span class="s2">&quot;mnr = &quot;</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+  <span class="n">pkde</span> <span class="o">=</span> <span class="n">prod_pkde</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span>
+  <span class="n">multiplot</span><span class="p">(</span><span class="n">pdist</span><span class="p">,</span> <span class="n">pkde</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="http://neurodatadesign.github.io/fngs/img/bnu2nostc.jpeg">
+<img src="http://neurodatadesign.github.io/fngs/img/bnu2stc.jpeg"></p>
+<p>We can see that the discriminability has been lowered, which was not what was predicted to happen.</p>
+
 </div>
 </div>
 </div>
