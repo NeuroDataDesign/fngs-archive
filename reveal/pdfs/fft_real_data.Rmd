@@ -1,0 +1,255 @@
+---
+title: "fft_real_data"
+author: "Eric Bridgeford"
+date: "February 20, 2017"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Real Data
+
+### Problem
+
+When we use our correction method described in [nuisance methods](https://github.com/NeuroDataDesign/fngs/blob/master/reveal/pdfs/nuis_methods.ipynb), we note a strange occurence with the timeseries data:
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/open_timeseries.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2freq.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/freq2div.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/div2dist.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/R/processing/kde_subject.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/reliability.R')
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
+  inpath <- 'C:/Users/ebrid/Documents/R/fngs_v0114/HNU1/desikan-2mm/'
+  require('reshape2')
+  require('ggplot2')
+  tsnames <- list.files(inpath, pattern="\\.rds", full.names=TRUE)
+  scan_pos = 3
+  tsobj <- open_timeseries(tsnames, sub_pos=scan_pos)
+  signal <- tsobj[[1]]
+  ids <- tsobj[[3]]
+  ggplot(melt(signal[[1]]), aes(x=Var1, y=value, group=Var2, color=Var2)) + 
+    geom_line() +
+    xlab('Time') +
+    ylab('Intensity') +
+    ggtitle('Strange looking timeseries with spike in first time step')
+```
+
+Note the enormously high intensity for the first timestep, and that it significantly descreases within the first 2 timesteps. This is probably an error with how we are using high pass filtering, which will be further explored in the succeeding weeks. Chopping off the first and second timesteps, however, we get a much better looking timeseries:
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  signal <- sapply(signal, function(x) {
+    x[3:dim(x)[1],]
+  }, USE.NAMES=TRUE, simplify=FALSE)
+  ggplot(melt(signal[[1]][3:dim(signal[[1]])[1],]), aes(x=Var1, y=value, group=Var2, color=Var2)) + 
+    geom_line() +
+    xlab('Time') +
+    ylab('Intensity') +
+    ggtitle('Timeseries after removal of first timestep')
+```
+
+Which is what we will use for computations of discriminability.
+
+## Non Ranking
+Here, we will compare how the spectral approach performs with respect to the discriminability using real data from the BNU1 dataset.
+
+
+### Spectral Approach 
+
+#### Raw Amplitude Spectrum
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/distance.R')
+  source('C:/Users/ebrid/Documents/GitHub/ugrad-data-design-team-0/data_processing/Rutils/obs2corr.R')
+  require('Rmisc')
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
+  distmtx <- div2dist(div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Amplitude Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+#### Raw Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
+  distmtx <- div2dist(div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Standard Discriminability Approach
+
+#### Raw Correaltion Graphs
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  
+  Draw <- distance(wgraphs)
+  mnrraw <- mnr(rdf(Draw, ids))
+
+  kdeobj <- kde_subject(Draw, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(Draw), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Discriminability Approach, d=%.4f', mnrraw))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+## Ranking
+
+### Spectral Approach 
+
+#### Ranked Amplitude Spectrum
+
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  amp_sig <- obs2amp(signal, tr=2.5, lc=0.01)
+  div <- freq2div(amp_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Distance Matrix between Pairs of Scans, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+#### Ranked Power Spectrum
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  pow_sig <- obs2pow(signal, tr = 2.5, lc=0.01)
+  div <- freq2div(pow_sig)
+  rank_div <- sapply(div, function(x) array(rank(x), dim=dim(x)), USE.NAMES=TRUE, simplify=FALSE)
+  distmtx <- div2dist(rank_div)
+
+  mnrspec <- mnr(rdf(distmtx, ids))
+  
+  kdeobj <- kde_subject(distmtx, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(distmtx), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),name="distance") +
+    xlab("Scan") +
+    ylab("Scan") +
+    ggtitle(sprintf('Ranked Spectral Approach Power Spec, d=%.4f', mnrspec))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Subject Relationships')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
+### Standard Discriminability Approach
+
+#### Ranked Correlation Graphs
+```{r, fig.height=6, fig.width=12, message=FALSE}
+  corr <- obs2corr(signal)
+
+  ## Change Convention from preferred vara[[sub]][array] to vara[sub,array] for use with old code ---------
+  nroi <- dim(corr[[1]])[1]
+  nscans <- length(corr)
+  wgraphs <- array(rep(NaN, nroi*nroi*nscans), c(nroi, nroi, nscans))
+  
+  counter <- 1
+  for (subject in 1:nscans) {
+    wgraphs[,,counter] <- corr[[subject]]
+    counter <- counter + 1
+  }
+  source('C:/Users/ebrid/Documents/GitHub/Reliability/Code/FlashRupdated/functions/computerank.R')
+  ranked_graphs <- rank_matrices(wgraphs)
+  
+  Dranked <- log(distance(ranked_graphs))
+  mnrranked <- mnr(rdf(Dranked, ids))
+
+  kdeobj <- kde_subject(Dranked, ids)
+  kde_dist <- data.frame(x=kdeobj[[1]]$y, y=kdeobj[[2]]$y, distance=kdeobj[[1]]$x)
+  colnames(kde_dist) <- c("intra", "inter", "distance")
+  meltkde <- melt(kde_dist, id="distance")
+  colnames(meltkde) <- c("distance", "Relationship", "Probability")
+  
+  distance_plot <- ggplot(melt(Dranked), aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile() +
+    scale_fill_gradientn(colours=c("darkblue","blue","purple","green","yellow"),
+                         name="log dist") +
+    xlab("Scan") + ylab("Scan") + ggtitle(sprintf('Distance Matrix between Pairs of Scans, d=%.4f', mnrranked))
+  kde_plot <- ggplot() +
+    geom_ribbon(data=meltkde, aes(x=distance, ymax=Probability, fill=Relationship), ymin=0, alpha=0.5) +
+    ggtitle('Density Estimate of Scan Distances')
+  multiplot(distance_plot, kde_plot, layout=matrix(c(1,2), nrow=1, byrow=TRUE))
+```
+
