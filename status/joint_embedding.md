@@ -7,6 +7,7 @@
 + feed matrices into JE algorithm given an r to get combination of factors for the entire dataset, and a unique loading for each graph
 
 # How to use
++ use code and example provided by Leo to compute factors/loadings
 + feed factors/loadings through an estimator of p, the parameters for each graph
 + use p to describe each matrix and ignore the individual matrix from that point onwards
 + requires binarized matrices
