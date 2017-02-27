@@ -1,0 +1,59 @@
+---
+title: "GLMdenoise"
+author: "Ewok"
+date: "February 27, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+\* Eric did mention during our review that he had tried compcor analysis. This technique differs from and performs better than the standard GLM, but Eric doesn't think it's worth investigating.
+
+The following is based on the article found here: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3865440/
+
+This denoising technique was created specifically for task-based fMRIs. A generalized linear model (GLM) is a "flexible generalization of ordinary linear regression that allows for response variables that have error distribution models other than a normal distribution."[[1]](https://en.wikipedia.org/wiki/Generalized_linear_model) This technique derives noise regressors by creating an initial model to distinguish voxels which are unrelated to the task-based experiment, performs principal component analysis (PCA) on these voxels' timeseries, and uses a cross-validation method between multiple sessions to determine the optimal number of components. This cross-validation requires datasets with multiple sessions, but if only one is present, the dataset can be split to achieve the same effect (though if the number of volumes is too small, this may lead to overfitting).
+
+The choice of nuisance regressors is critical to this process; "if the regressors are inaccurate or fail to capture a significant portion of the noise, they may have little effect or even worsen task-related estimates." By using cross-validation to optimize the number of regressors, the technique substantially improves the signal-to-noise (SNR) ratio, the maximum response amplitude per voxel divided by the error. The algorithm consists of large-scale matrix operations, so it is memory-intensive but fast. GLMdenoise is designed to be applied after slice timing correction and motion correction.
+
+The model itself can be described by the following equation:
+$$y=(X*k)h+Pu+Gv+n$$
+where the variables are defined as follows (t = num time points, r = num runs, c = num conditions, l = num time points in HRF, p = num poly regressors per run, g = num noise reg per run):
+
+* $y$ - (tr x 1) data vector
+* $X$ - (tr x c) design matrix
+* $k$ - (l x 1) HRF vector
+* $h$ - (c x 1) beta weights
+* $P$ - (tr x pr) polynomial regressors
+* $u$ - (pr x 1) polyreg weights
+* $G$ - (tr x gr) noise regressors
+* $v$ - (gr x 1) noise reg weights
+* $n$ - (tr x 1) noise term
+
+Since data from multiple sessions are analyzed together, a single beta weight is obtained for repeated conditions. Each session has its own noise regressors. The same hemodynamic response function (HRF), polynomial regressors, and noise regressors are used for all the voxels in a dataset, but each voxel has its own weights on each of these.
+
+```{r, out.width = "525px", echo=FALSE}
+knitr::include_graphics("http://neurodatadesign.github.io/fngs/ewok_weekly/glm/schematic.jpg")
+```
+
+The model performs cross-validation via a "leave-one-run-out" method, i.e. fitting to a subset of the runs and then predicting the left-out run, repeating for each run. Goodness of fit is quantified via the coefficient of determination ($R^2$):
+$$R^2=100 \times \left(1- \frac{\sum_i (d_i-m_i)^2}{\sum_i (d_i- \bar d)^2}\right)$$
+
+```{r, out.width = "700px", echo=FALSE}
+knitr::include_graphics("http://neurodatadesign.github.io/fngs/ewok_weekly/glm/comparison.jpg")
+```
+
+```{r, out.width = "850px", echo=FALSE}
+knitr::include_graphics("http://neurodatadesign.github.io/fngs/ewok_weekly/glm/performance.jpg")
+```
+
+## My Thoughts
+
+I want to test this out as an alternative nuisance correction algorithm. I know that GLM has been tried in the past, but this introduces a new aspect (the cross-validation), which may improve our results. The biggest roadblock to this method is that our pipeline processes each run one at a time, so this is at odds with how this algorithm typically works, given that it expects to be able to cross-validate with other runs from the same subject. However, it may be interesting to see if it still works well by splitting the timeseries and cross-validating in that way (though we'd have to be careful about the aforementioned overfitting issue associated with this).
+
+The algorithm can account for many different types of noise (e.g. motion, physiological, neural, etc.) and does not make assumptions dependent upon the nature of the noise that other algorithms may do. However, it would fail to remove noise falsely correlated with experimental conditions, and it also cannot handle extreme artifacts.
+
+If this doesn't seem worth investigating, Eric suggested I instead work on our existing method that fits components from the white matter and verify that they do not correlate with the task-based stimulus.
